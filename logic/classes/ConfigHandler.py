@@ -8,7 +8,7 @@ class ConfigHandler:
     settings = {}
     root = None
 
-    def __init__(self, path, filename, root):
+    def __init__(self, path: object, filename: object, root: object) -> object:
         self.path = path
         self.config = configparser.ConfigParser()
         self.FILE_NAME = filename
