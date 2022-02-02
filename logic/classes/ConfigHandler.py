@@ -14,7 +14,7 @@ class ConfigHandler:
         self.FILE_NAME = filename
         self.root = root
 
-    def getValue(self, value):
+    def get_value(self, value):
         if not self.checkPath():
             self.config.read(self.path)
         else:
@@ -37,7 +37,7 @@ class ConfigHandler:
         with open(self.path, "w") as configfile:
             self.config.write(configfile)
 
-    def checkPath(self):
+    def check_path(self):
         if self.path.endswith('ini'):
             return False
         else:

@@ -12,7 +12,7 @@ class EmbededHandler:
         self.url = url
         self.fields = fields
 
-    def generateMsg(self):
+    def generate_msg(self):
         msg = discord.Embed(title=self.title, colour=self.colour)
         for field in self.fields:
             msg.add_field(name=field.getTitle(), value=field.getValue(), inline=field.getInline())
