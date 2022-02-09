@@ -4,7 +4,7 @@ from logic.classes.ConfigHandler import ConfigHandler
 from discord.ext import commands
 
 
-class FunCommands:
+class FunCommands(commands.Cog):
     def __init__(self, bot):
         cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "FUNCOMMANDS")
         self.settings = cfg.load()

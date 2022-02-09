@@ -45,5 +45,6 @@ class Bot(metaclass=Singleton):
 
     def register_cogs(self):
         crs = CommandRegisterService(self.bot)
+        crs.register_commands()
         crs.register_events()
 
