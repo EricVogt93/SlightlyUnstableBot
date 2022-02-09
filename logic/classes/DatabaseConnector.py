@@ -1,21 +1,45 @@
 import os
-from pymongo import MongoClient
+import pyodbc
+
 from ConfigHandler import ConfigHandler
 
-class DatabaseConnector:
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class DatabaseConnector(metaclass=Singleton):
 
     def __init__(self):
+        self.con_obj = None
         self.isConnected = False
 
         cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "DEFAULT")
-        self.cfg_data = cfg.load()
-        self.connection_string = self.cfg_data("connection_string")
-        self.database_table = self.cfg_data("db_table_name")
-
+        self.driver = cfg.get_value("driver")
+        self.server = cfg.get_value("server")
+        self.database = cfg.get_value("database")
+        self.user = cfg.get_value("user")
+        self.pw = cfg.get_value("pw")
 
     def connect(self):
-        cluster = MongoClient(self.connection_string)
-        db = cluster[self.database_table]
+        try:
+            self.con_obj = pyodbc.connect(f'Driver={self.driver};'
+                                          f'Server={self.server};'
+                                          f'Database={self.database};'
+                                          f'UID={self.user};'
+                                          f'PWD={self.pw};'
+                                          f'Trusted_Connection=yes;')
+            self.isConnected = True
+        except:
+            self.isConnected = False
+            print("DatabaseConnector:connect - Database connection failed")
 
-
-
+    def execute_query(self, query):
+        if self.isConnected:
+            cursor = self.con_obj.cursor()
+            cursor.execute(query)

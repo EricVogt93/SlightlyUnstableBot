@@ -1,0 +1,49 @@
+import os
+import discord
+from discord.ext import commands
+from logic.classes.ConfigHandler import ConfigHandler
+from cogs.CommandRegisterService import CommandRegisterService
+
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class Bot(metaclass=Singleton):
+
+    def __init__(self):
+        self.prefix = commands.Bot(command_prefix="!")
+        self.intents = discord.Intents.all()
+        self.bot = None
+        self.isDebugMode = True
+
+        # Check ob Bot aus Pycharm gestarted wurde. #
+        if "PYCHARM_HOSTED" in os.environ:
+            self.isDebugMode = True
+        else:
+            self.isDebugMode = False
+
+    def start_bot(self):
+        cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "DEFAULT")
+        token = cfg.get_value("token")
+
+        self.bot = commands.Bot(command_prefix=self.prefix, case_insensitive=True, intents=self.intents,
+                                help_command=None)
+        self.register_cogs()
+        self.bot.run(token)
+
+    def get_bot_obj(self):
+        return self.bot
+
+    def get_debug_mode(self):
+        return self.isDebugMode
+
+    def register_cogs(self):
+        crs = CommandRegisterService(self.bot)
+        crs.register_events()
+

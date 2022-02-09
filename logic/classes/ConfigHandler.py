@@ -15,14 +15,14 @@ class ConfigHandler:
         self.root = root
 
     def get_value(self, value):
-        if not self.checkPath():
+        if not self.check_path():
             self.config.read(self.path)
         else:
             self.config.read(f"{self.path}/{self.FILE_NAME}")
         return self.config[self.root][value]
 
     def load(self):
-        if not self.checkPath():
+        if not self.check_path():
             self.config.read(self.path)
         else:
             self.config.read(f"{self.path}/{self.FILE_NAME}")

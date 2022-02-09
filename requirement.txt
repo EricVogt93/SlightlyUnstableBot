@@ -1,4 +1,4 @@
 ###### Requirements ######
 ###### Execute: pip install -r requirements.txt ######
 discord
-pymongo
+pyodbc

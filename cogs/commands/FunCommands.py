@@ -11,25 +11,25 @@ class FunCommands:
         self.bot = bot
 
     @commands.command(pass_context=True)
-    async def hurensohn(self, ctx):
-        await ctx.send(self.settings["hurensohn"])
+    async def hurensohn(self, bot):
+        await bot.send(self.settings["hurensohn"])
 
     @commands.command(pass_context=True)
-    async def ja(self, ctx):
-        await ctx.send(self.settings["ja"])
+    async def ja(self, bot):
+        await bot.send(self.settings["ja"])
 
     @commands.command(pass_context=True)
-    async def nein(self, ctx):
-        await ctx.send(self.settings["nein"])
+    async def nein(self, bot):
+        await bot.send(self.settings["nein"])
 
     @commands.command(pass_context=True)
-    async def robinsmutter(self, ctx):
-        await ctx.send(self.settings["robins_mutter"])
+    async def robinsmutter(self, bot):
+        await bot.send(self.settings["robins_mutter"])
 
     @commands.command(pass_context=True)
-    async def whiteknight(self, ctx):
-        await ctx.send(self.settings["whiteknight"])
+    async def whiteknight(self, bot):
+        await bot.send(self.settings["whiteknight"])
 
     @commands.command(pass_context=True)
-    async def jeremy(self, ctx):
-        await ctx.send(self.settings["jeremy"])
+    async def jeremy(self, bot):
+        await bot.send(self.settings["jeremy"])
