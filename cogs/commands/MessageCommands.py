@@ -7,8 +7,8 @@ from discord.ext import commands
 
 class MessageCommands(commands.Cog):
     def __init__(self, bot):
-        cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "URL").load()
-        self.settings = cfg.load()
+        cfg_obj = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "URL")
+        self.cfg = cfg_obj.load()
         self.bot = bot
 
     @commands.command(pass_context=True)
