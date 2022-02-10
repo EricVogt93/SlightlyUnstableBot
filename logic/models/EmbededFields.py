@@ -9,11 +9,11 @@ class EmbededField:
         self.value = value
         self.inline = inline
 
-    def getTitle(self):
+    def get_title(self):
         return self.title
 
-    def getValue(self):
+    def get_value(self):
         return self.value
 
-    def getInline(self):
+    def get_inline(self):
         return self.inline

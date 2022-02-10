@@ -1,7 +1,7 @@
 import os
 
-from Handler.ConfigHandler import ConfigHandler
-from Helper.switchcase import switchcase
+from logic.classes.ConfigHandler import ConfigHandler
+from logic.helper.switchcase import switchcase
 
 
 class ErrorHandler:
@@ -18,14 +18,14 @@ class ErrorHandler:
         cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "ERRORS")
         self.errors_config_settings = cfg.load()
 
-    def checkError(self):
+    def check_error(self):
         switch = switchcase(self.error_dictionary, self.error)
         errorhandling = switch.compare(True)
         # dynamischer function call
         method = globals()[errorhandling]
         return method(self.errors_config_settings, self.errortxt)
 
-    def buildDict(self):
+    def build_dict(self):
         self.error_dictionary = {
             "errors.CommandOnCooldown": "CommandOnCooldown",
             "errors.MissingPermissions": "MissingPermissions",

@@ -1,4 +1,4 @@
-from logic.Models.MemberModel import MemberModel as Member
+from logic.models.MemberModel import MemberModel as Member
 
 
 class DiscordDataModel:

@@ -8,6 +8,7 @@ class ConfigHandler:
     settings = {}
     root = None
 
+    #ToDo: check_path entfernen für Lesbarkeit
     def __init__(self, path: object, filename: object, root: object) -> object:
         self.path = path
         self.config = configparser.ConfigParser()

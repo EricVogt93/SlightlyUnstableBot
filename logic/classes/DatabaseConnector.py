@@ -36,6 +36,7 @@ class DatabaseConnector(metaclass=Singleton):
                                           f'Trusted_Connection=yes;')
             self.isConnected = True
         except:
+            # ToDo: Auslagern ExceptionManager.py
             self.isConnected = False
             print("DatabaseConnector:connect - Database connection failed")
 
