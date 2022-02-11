@@ -6,12 +6,22 @@ from cogs.events.OnReady import OnReady
 
 class CommandRegisterService:
     def __init__(self, bot):
+        """
+        Konstruktor der Klasse CommandRegisterService. Benötigt Instanz vom Discordbot - Objekt.
+        :param bot: Object
+        """
         self.bot = bot
 
     def register_commands(self):
+        """
+        Registriert alle Commands.
+        """
         self.bot.add_cog(FunCommands(self.bot))
         self.bot.add_cog(MessageCommands(self.bot))
         self.bot.add_cog(ReminderCommands(self.bot))
 
     def register_events(self):
+        """
+        Registriert alle Events.
+        """
         self.bot.add_cog(OnReady(self.bot))

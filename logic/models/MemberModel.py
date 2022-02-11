@@ -1,11 +1,22 @@
 class MemberModel:
     def __init__(self, name, ident, roles):
+        """
+        Konstruktor der Klasse MemberModel
+        :param name: String
+        :param ident: String
+        :param roles: Array::String
+        """
         self.name = name
         self.id = ident
         self.roles = roles
 
     @staticmethod
     def get_all_member(bot):
+        """
+        Ruft alle Member des Discord ab.
+        :param bot: Object
+        :return: Array::String
+        """
         array_members = []
         i = 0
         for guild in bot.guilds:
@@ -16,6 +27,12 @@ class MemberModel:
 
     @staticmethod
     def filter_member_by_role(array_data, role):
+        """
+        Filtert Discord Member bei der gegebenen Rolle
+        :param array_data: Array::String
+        :param role: Discord::Role
+        :return: Array::String
+        """
         array_members = []
         i = 0
 

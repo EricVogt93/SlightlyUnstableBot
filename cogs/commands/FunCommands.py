@@ -6,6 +6,10 @@ from discord.ext import commands
 
 class FunCommands(commands.Cog):
     def __init__(self, bot):
+        """
+        Konstruktor der Klasse FunCommands.Benötigt Instanz vom Discordbot - Objekt.
+        :param bot: Object
+        """
         cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "FUNCOMMANDS")
         self.settings = cfg.load()
         self.bot = bot

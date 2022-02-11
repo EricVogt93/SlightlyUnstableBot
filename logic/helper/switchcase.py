@@ -3,6 +3,10 @@ class switchcase:
     switch = None
 
     def __init__(self, case_dictionary, switch):
+        """
+        Konstruktor der Klasse switchcase
+        :rtype: object
+        """
         self.case_dictionary = case_dictionary
         self.switch = switch
 

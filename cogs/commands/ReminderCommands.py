@@ -13,6 +13,10 @@ from logic.helper.date import DateHelper as date_helper
 
 class ReminderCommands(commands.Cog):
     def __init__(self, bot):
+        """
+        Konstruktor der Klasse ReminderCommands
+        :param bot:
+        """
         cfg_obj = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "URL")
         self.cfg = cfg_obj.load()
         self.bot = bot
@@ -25,14 +29,19 @@ class ReminderCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     async def remind_raid_signup(self):
+        """
+        Startpunkt für Raiderinnerungen.
+        """
         data = self.get_raid_object()
         self.extract_raid_information(data)
         await self.send_reminder(self.raid_dictionary)
-
         # ToDo: Add Log, in dem alle Notifications gespeichert werden.
-        return None
 
     def get_raid_object(self):
+        """
+        Holt alle Daten aus WoWAudit und gibt diese als JSON zurück.
+        :return: String::JSON
+        """
         curr_date = date_helper.get_current_date()
 
         r = requests.get(
@@ -50,6 +59,10 @@ class ReminderCommands(commands.Cog):
         return raid
 
     def extract_raid_information(self, raid_obj):
+        """
+        Filtert aus JSON alle relevanten Informationen und lädt diese in ein Dictionary.
+        :param raid_obj: String::JSON
+        """
         unformatted_date = raid_obj["date"]
         self.raid_dictionary["raidDate"] = datetime.strptime(unformatted_date, '%Y-%m-%d').strftime('%d.%m.%y')
         self.raid_dictionary["raidStart"] = raid_obj["start_time"]
@@ -60,11 +73,18 @@ class ReminderCommands(commands.Cog):
         self.raid_dictionary["awayMember"] = self.get_raid_member(raid_obj, 2)
 
     def get_raid_member(self, raid_obj, switch):
+        """
+        Filtert alle Raidanmeldungen und unterteilt Member in entsprechende Arrays.
+        :param raid_obj: String::JSON
+        :param switch: Int
+        :return: Array::String
+        """
         present_raider_array = []
         tentative_raider_array = []
         away_raider_array = []
         index = 0
 
+        #ToDo: Überarbeiten. Unnötigt und furchtbar Performance intensiv.
         for member in raid_obj["signups"]:
             name = member["character"]["name"] + "-" + member["character"]["realm"]
 
@@ -84,6 +104,10 @@ class ReminderCommands(commands.Cog):
             return away_raider_array
 
     async def send_reminder(self, data):
+        """
+        Sendet private Nachricht an Member, welche noch erinnert werden müssen.
+        :param data: Dictionary<string, string>
+        """
         user = None
         raid_url = f'{self.cfg["wowaudit_raid"]}{self.raid_dictionary["raidDate"]}'
         raid_time = date_helper.concat_dates(self.raid_dictionary["raidStart"], self.raid_dictionary["raidEnd"], '-')
