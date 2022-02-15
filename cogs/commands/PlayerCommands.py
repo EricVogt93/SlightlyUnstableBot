@@ -23,7 +23,7 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def add_gamer(self, ctx, member: discord.Member, joined_mid_year: bool):
+    async def add_gamer(self, ctx, member: discord.Member, joined_mid_year=True):
         name = str(member.name)
         id = MemberModel.get_discord_id(member)
         is_trial_bool = MemberModel.is_trial(member)
@@ -31,7 +31,7 @@ class PlayerCommands(commands.Cog):
         id_joined = self.get_joined_id(joined_mid_year)
 
         query = f"INSERT INTO player " \
-                f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, JOINED_ID) VALUES " \
+                f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED) VALUES " \
                 f"('{name}', {id}, {is_trial}, {id_joined});"
 
         db = DatabaseConnector()

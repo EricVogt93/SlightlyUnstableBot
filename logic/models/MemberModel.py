@@ -89,6 +89,6 @@ class MemberModel:
             data = str(row)
             d = data.split(", ")
             member = MemberModel(bot=bot, primary_key=d[0], name=d[1], discord_id=d[2], vacation_start=d[3],
-                                 vacation_end=d[4], flask_spend=d[5], is_trial=d[6], joined_id=d[7])
+                                 vacation_end=d[4], flask_spend=d[5], joined_id=d[6], is_trial=d[7])
             member_list.append(member)
         return member_list

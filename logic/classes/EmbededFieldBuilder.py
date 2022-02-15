@@ -15,6 +15,6 @@ class EmbededHandler:
     def generate_msg(self):
         msg = discord.Embed(title=self.title, colour=self.colour)
         for field in self.fields:
-            msg.add_field(name=field.getTitle(), value=field.getValue(), inline=field.getInline())
+            msg.add_field(name=field.get_title(), value=field.get_value(), inline=field.get_inline())
 
         return msg

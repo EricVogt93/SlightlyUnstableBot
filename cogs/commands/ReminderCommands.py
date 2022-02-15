@@ -6,7 +6,6 @@ import discord
 from datetime import *
 from discord.ext import commands
 
-from logic import settings
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.EmbededFieldBuilder import EmbededHandler
@@ -31,7 +30,6 @@ class ReminderCommands(commands.Cog):
     async def remind_flask(self, ctx):
         await asyncio.sleep(1)
         query = f"SELECT * FROM player;"
-        member = settings.dictionary["last_message_author"]
         week_num = DateConverter.get_week_number()
 
         db = DatabaseConnector()
@@ -46,13 +44,13 @@ class ReminderCommands(commands.Cog):
             await OutputHandler.send_pm(member.member_obj, msg)
 
     @commands.command(pass_context=True)
-    async def remind_raid_signup(self):
+    async def remind_raid_signup(self, ctx):
         """
         Startpunkt für Raiderinnerungen.
         """
         data = self.get_raid_object()
         self.extract_raid_information(data)
-        await self.send_reminder(self.raid_dictionary)
+        await self.send_reminder(self.raid_dictionary["tentativeMember"])
         # ToDo: Add Log, in dem alle Notifications gespeichert werden.
 
     def get_raid_object(self):
@@ -101,7 +99,6 @@ class ReminderCommands(commands.Cog):
         present_raider_array = []
         tentative_raider_array = []
         away_raider_array = []
-        index = 0
 
         #ToDo: Überarbeiten. Unnötigt und furchtbar Performance intensiv.
         #Listen in Map übergeben und dict rückgeben dict <string, array::string>
@@ -109,12 +106,11 @@ class ReminderCommands(commands.Cog):
             name = member["character"]["name"] + "-" + member["character"]["realm"]
 
             if member["status"] == "Present" or member["status"] == "Late":
-                present_raider_array[index] = name
+                present_raider_array.append(name)
             elif member["status"] == "Tentative" or member["status"] == "Unknown":
-                tentative_raider_array[index] = name
+                tentative_raider_array.append(name)
             else:
-                away_raider_array[index] = name
-            index = + 1
+                away_raider_array.append(name)
 
         if switch == 0:
             return present_raider_array
@@ -134,7 +130,7 @@ class ReminderCommands(commands.Cog):
 
         # ToDo Dynamischer machen; keine festen Channel - Angaben
         channel = self.bot.get_channel(548962606438809620)
-        for d in data:
+        for member in data:
             try:
                 # ToDo: Strings in Config aufnehmen und Code changen
                 emfields = {
@@ -145,7 +141,7 @@ class ReminderCommands(commands.Cog):
                 emb_handler = EmbededHandler("Raidanmeldung", emfields)
                 msg = emb_handler.generate_msg()
 
-                user = self.bot.get_user(d)
+                user = self.bot.get_user(member)
                 await user.send(embed=msg)
             except discord.Forbidden:
                 await channel.send(user)
