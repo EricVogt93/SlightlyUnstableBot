@@ -61,9 +61,8 @@ class MemberModel:
                 return True
         return False
 
-    @staticmethod
-    def get_member_obj(bot, id):
-        return get(bot.get_all_members(), id=id)
+    def get_member_obj(self, bot, id):
+        return get(iterable=bot.get_all_members(), id=int(id))
 
     def format_name(self, name):
         return name.replace("'", "")

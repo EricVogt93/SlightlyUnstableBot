@@ -1,3 +1,4 @@
+import asyncio
 import os
 import requests
 import discord
@@ -5,10 +6,14 @@ import discord
 from datetime import *
 from discord.ext import commands
 
+from logic import settings
 from logic.classes.ConfigHandler import ConfigHandler
+from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.EmbededFieldBuilder import EmbededHandler
+from logic.classes.OutputHandler import OutputHandler
 from logic.models.EmbededFields import EmbededField
-from logic.helper.DateConverter import DateConverter as date_helper
+from logic.helper.DateConverter import DateConverter as date_helper, DateConverter
+from logic.models.MemberModel import MemberModel
 
 
 class ReminderCommands(commands.Cog):
@@ -23,9 +28,22 @@ class ReminderCommands(commands.Cog):
         self.raid_dictionary = {}
 
     @commands.command(pass_context=True)
-    async def remind_flask(self):
-        # ToDo: Add Log, in dem alle Notifications gespeichert werden.
-        return None
+    async def remind_flask(self, ctx):
+        await asyncio.sleep(1)
+        query = f"SELECT * FROM player;"
+        member = settings.dictionary["last_message_author"]
+        week_num = DateConverter.get_week_number()
+
+        db = DatabaseConnector()
+        db.connect()
+        raw_data = db.fetch_data_query(query)
+        db.close()
+
+        data = MemberModel.parse_data(self.bot, raw_data)
+
+        for member in data:
+            msg = self.build_flask_reminder_msg(member, week_num)
+            await OutputHandler.send_pm(member.member_obj, msg)
 
     @commands.command(pass_context=True)
     async def remind_raid_signup(self):
@@ -131,3 +149,12 @@ class ReminderCommands(commands.Cog):
                 await user.send(embed=msg)
             except discord.Forbidden:
                 await channel.send(user)
+
+    def build_flask_reminder_msg(self, member: discord.Member, week_num):
+        covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
+        msg = f"Hi {member.name}, du bist bereits {int(covered_weeks)} Wochen behind.\n " \
+              f"Bitte schicke Grondo oder Samed neue Flasks. Bevorzugt per Ingame-Mail."
+        return msg
+
+    def flask_calculation(self, flask_spend, week_num, id_joined):
+        return ((flask_spend / 2) - week_num) + id_joined
