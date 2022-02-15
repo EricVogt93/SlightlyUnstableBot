@@ -1,7 +1,7 @@
 import os
 import pyodbc
 
-from ConfigHandler import ConfigHandler
+from logic.classes.ConfigHandler import ConfigHandler
 
 
 class Singleton(type):
@@ -32,15 +32,28 @@ class DatabaseConnector(metaclass=Singleton):
                                           f'Server={self.server};'
                                           f'Database={self.database};'
                                           f'UID={self.user};'
-                                          f'PWD={self.pw};'
-                                          f'Trusted_Connection=yes;')
+                                          f'PWD={self.pw};')
             self.isConnected = True
         except:
             # ToDo: Auslagern ExceptionManager.py
             self.isConnected = False
-            print("DatabaseConnector:connect - Database connection failed")
+            raise Exception("DatabaseConnector:connect - Database connection failed")
 
+    def close(self):
+        try:
+            self.con_obj.close()
+            self.isConnected = False
+        except:
+            self.isConnected = True
+            raise Exception("DatabaseConnector:connect - Database connection could not be closed.")
+
+    # ToDo: Ausbauen
     def execute_query(self, query):
         if self.isConnected:
             cursor = self.con_obj.cursor()
-            cursor.execute(query)
+            try:
+                cursor.execute(query)
+            except:
+                raise Exception("DatabaseConnector:query - Something happenend.")
+            self.con_obj.commit()
+            cursor.close()

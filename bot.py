@@ -20,12 +20,12 @@ class Bot(metaclass=Singleton):
         """
         Konstruktor der Klasse Bot
         """
-        self.prefix = commands.Bot(command_prefix="!")
+        self.prefix = "!"
         self.intents = discord.Intents.all()
         self.bot = None
         self.isDebugMode = True
 
-        # Check ob Bot aus Pycharm gestarted wurde. #
+        # Check ob Bot aus Pycharm gestarted wurde.
         if "PYCHARM_HOSTED" in os.environ:
             self.isDebugMode = True
         else:
@@ -64,4 +64,3 @@ class Bot(metaclass=Singleton):
         crs = CommandRegisterService(self.bot)
         crs.register_commands()
         crs.register_events()
-

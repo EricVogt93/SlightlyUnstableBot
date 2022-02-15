@@ -1,6 +1,7 @@
 from cogs.commands.FunCommands import FunCommands
 from cogs.commands.MessageCommands import MessageCommands
 from cogs.commands.ReminderCommands import ReminderCommands
+from cogs.commands.PlayerCommands import PlayerCommands
 from cogs.events.OnReady import OnReady
 
 
@@ -19,6 +20,7 @@ class CommandRegisterService:
         self.bot.add_cog(FunCommands(self.bot))
         self.bot.add_cog(MessageCommands(self.bot))
         self.bot.add_cog(ReminderCommands(self.bot))
+        self.bot.add_cog(PlayerCommands(self.bot))
 
     def register_events(self):
         """

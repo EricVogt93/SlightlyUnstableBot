@@ -1,3 +1,6 @@
+import discord
+
+
 class MemberModel:
     def __init__(self, name, ident, roles):
         """
@@ -42,3 +45,14 @@ class MemberModel:
                     array_members[i] = member
                     i = i + 1
         return array_members
+
+    @staticmethod
+    def get_discord_id(member: discord.Member):
+        return int(member.id)
+
+    @staticmethod
+    def is_trial(member: discord.Member):
+        for role in member.roles:
+            if role == "Trial":
+                return True
+        return False

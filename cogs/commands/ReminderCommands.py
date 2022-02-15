@@ -44,6 +44,7 @@ class ReminderCommands(commands.Cog):
         """
         curr_date = date_helper.get_current_date()
 
+        #ToDo: Strings ersetzen durch Config val
         r = requests.get(
             "https://www.wowaudit.com/v1/raids/?api_key=" + "8b338a074f0c66c3980dcf0ef98546fdeb0e54e787d32a0cae99e46409109c8a")
         data = r.json()
@@ -85,6 +86,7 @@ class ReminderCommands(commands.Cog):
         index = 0
 
         #ToDo: Überarbeiten. Unnötigt und furchtbar Performance intensiv.
+        #Listen in Map übergeben und dict rückgeben dict <string, array::string>
         for member in raid_obj["signups"]:
             name = member["character"]["name"] + "-" + member["character"]["realm"]
 
