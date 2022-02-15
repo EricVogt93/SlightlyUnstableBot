@@ -1,5 +1,6 @@
 import os
 
+from logic import settings
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.HelpGenerator import HelpHandler
 from discord.ext import commands
@@ -20,45 +21,46 @@ class MessageCommands(commands.Cog):
         """
         Gibt Gildenexcel - URL zurück.
         """
-        userid = self.bot.user.id
+        user_obj = settings.dictionary["last_message_author"]
         url = self.cfg["spreadsheet_path"]
         msg = f"Gildentabelle: {url}"
-        self.send_pm(userid, msg)
+        self.send_pm(user_obj, msg)
 
     @commands.command(pass_context=True)
     async def wowaudit(self):
         """
         Gibt WoWAudit - URL zurück.
         """
-        userid = self.bot.user.id
+        user_obj = settings.dictionary["last_message_author"]
         url = self.cfg["wowaudit_path"]
         msg = f"Raidanmeldungen: {url}"
-        self.send_pm(userid, msg)
+        self.send_pm(user_obj, msg)
 
     @commands.command(pass_context=True)
     async def progress(self):
         """
         Gibt Progress - Pfad zurück.
         """
-        userid = self.bot.user.id
+        user_obj = settings.dictionary["last_message_author"]
         url = self.cfg["progstats_path"]
         msg = f"Progressseite: {url}"
-        self.send_pm(userid, msg)
+        self.send_pm(user_obj, msg)
 
     @commands.command(pass_context=True)
     async def help(self):
         """
         Gibt Hilfekontext zurück.
         """
+        user_obj = settings.dictionary["last_message_author"]
         helper = HelpHandler()
         # ToDo: Message Author Rolle filtern und entsprechende Hilfe ausgeben
         embView = helper.getHelpTextOfficer()
         await self.bot.send(embed=embView)
 
-    async def send_pm(self, userid, msg):
+    async def send_pm(self, user, msg):
         """
         Sendet private Nachricht an Message.Author. Benötigt Message.Author.ID und eine Message.
-        :param userid: Int
+        :param user: Obj
         :param msg: String
         """
-        await self.bot.send_message(userid, msg)
+        await user.send(msg)
