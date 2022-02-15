@@ -5,15 +5,17 @@ from logic.helper.BoolBitConverter import BoolBitConverter
 
 
 class MemberModel:
-    def __init__(self, bot, primary_key, name, discord_id, vacation_start, vacation_end, flask_spend, is_trial):
+    def __init__(self, bot, primary_key, name, discord_id, vacation_start, vacation_end,
+                 flask_spend, is_trial, joined_id):
         self.primary_key = self.format_primary_key(primary_key)
         self.name = self.format_name(name)
         self.discord_id = discord_id
         self.vacation_start = vacation_start
         self.vacation_end = vacation_end
-        self.flask_spend = flask_spend
+        self.flask_spend = self.format_flask(flask_spend)
         self.is_trial = self.format_is_trial(is_trial)
         self.member_obj = self.get_member_obj(bot, discord_id)
+        self.joined_id = self.format_id_joined(joined_id)
 
     @staticmethod
     def get_all_member(bot):
@@ -64,11 +66,30 @@ class MemberModel:
         return get(bot.get_all_members(), id=id)
 
     def format_name(self, name):
-        return name.replace("'","")
+        return name.replace("'", "")
 
     def format_primary_key(self, pk):
-        return pk.replace("(","")
+        return pk.replace("(", "")
+
+    def format_id_joined(self, id):
+        return int(id.replace(")", ""))
 
     def format_is_trial(self, b):
         BoolBitConverter.bit_to_bool(b)
         return BoolBitConverter.bit_to_bool(b)
+
+    def format_flask(self, flask):
+        if flask != "None":
+            return int(float(flask))
+        return 0
+
+    @staticmethod
+    def parse_data(bot, raw_data):
+        member_list = []
+        for row in raw_data:
+            data = str(row)
+            d = data.split(", ")
+            member = MemberModel(bot=bot, primary_key=d[0], name=d[1], discord_id=d[2], vacation_start=d[3],
+                                 vacation_end=d[4], flask_spend=d[5], is_trial=d[6], joined_id=d[7])
+            member_list.append(member)
+        return member_list

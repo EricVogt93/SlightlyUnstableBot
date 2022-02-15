@@ -29,14 +29,14 @@ class TrialCommands(commands.Cog):
         db.connect()
         raw_data = db.fetch_data_query(query)
         db.close()
-        data = self.parse_data(raw_data)
+        data = MemberModel.parse_data(self.bot, raw_data)
 
-        string = ""
+        msg = ""
         i = 1
         for member in data:
-            string += f"{i} - {member.name}; {member.discord_id}\n"
+            msg += f"{i} - {member.name}; {member.discord_id}\n"
             i += 1
-        await self.send_pm(userid, string)
+        await self.send_pm(userid, msg)
 
     @commands.command(pass_context=True)
     async def makeTrial(self, ctx, member: discord.Member):
@@ -60,16 +60,6 @@ class TrialCommands(commands.Cog):
             await member.kick(reason=reason)
             msg = f"{member} wurde gekickt. Begründung: {reason}."
         self.send_pm(userid, msg)
-
-    def parse_data(self, raw_data):
-        member_list = []
-        for row in raw_data:
-            data = str(row)
-            d = data.split(", ")
-            member = MemberModel(bot=self.bot, primary_key=d[0], name=d[1], discord_id=d[2], vacation_start=d[3],
-                                 vacation_end=d[4], flask_spend=d[5], is_trial=d[6])
-            member_list.append(member)
-        return member_list
 
     async def send_pm(self, user, msg):
         """
