@@ -109,18 +109,42 @@ class PlayerCommands(commands.Cog):
         db.close()
 
         data = MemberModel.parse_data(self.bot, raw_data)
-        curr_date = date.today()
-        year, week_num, day_of_week = curr_date.isocalendar()
+        week_num = DateConverter.get_week_number()
+
         msg = ""
         try:
             for member in data:
-                #ToDo: Casts sind ne katastrophe. Überarbeiten!
-                covered_weeks = ((member.flask_spend / 2) - week_num) + member.joined_id
+                covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
                 msg += f"- {member.name} ist für {int(covered_weeks)} Wochen save.\n"
         except:
-            msg = "Leider kam es zu Problemen bei der Verarbeitung."
+            msg = "PlayerCommands:fetch_all - Leider kam es zu Problemen bei der Verarbeitung."
             raise Exception(f"PlayerCommands:fetch_all - Something happenend.")
         await OutputHandler.send_pm(userid, msg)
+
+    @commands.command(pass_context=True)
+    async def flask(self, ctx):
+        await asyncio.sleep(1)
+        user = settings.dictionary["last_message_author"]
+        query = f"SELECT * FROM player WHERE DISCORD_ID={user.id};"
+
+
+        db = DatabaseConnector()
+        db.connect()
+        raw_data = db.fetch_data_query(query)
+        db.close()
+
+        data = MemberModel.parse_data(self.bot, raw_data)
+        week_num = DateConverter.get_week_number()
+
+        msg = ""
+        try:
+            for member in data:
+                covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
+                msg += f"- {member.name} ist für {int(covered_weeks)} Wochen save.\n"
+        except:
+            msg = "PlayerCommands:flask - Leider kam es zu Problemen bei der Verarbeitung."
+            raise Exception(f"PlayerCommands:flask - Something happenend.")
+        await OutputHandler.send_pm(user, msg)
 
     def get_joined_id(self, joined_mid_year=True):
         week_number = DateConverter.get_week_number()
@@ -128,3 +152,6 @@ class PlayerCommands(commands.Cog):
         if joined_mid_year:
             return week_number
         return 0
+
+    def flask_calculation(self, flask_spend, week_num, id_joined):
+        return ((flask_spend / 2) - week_num) + id_joined
