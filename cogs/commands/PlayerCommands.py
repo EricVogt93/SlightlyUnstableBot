@@ -107,6 +107,27 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
+    async def get_players_in_vacation(self, ctx):
+        await asyncio.sleep(1)
+        member = settings.dictionary["last_message_author"]
+        today = DateConverter.get_current_date()
+        db_today = DateConverter.formate_date_for_db(today)
+        query = f"SELECT * FROM player " \
+                f"WHERE VACATION_END>'{db_today}' " \
+                f"OR VACATION_END IS NULL " \
+                f"AND VACATION_END<'{db_today}' "
+
+        db = DatabaseConnector()
+        db.connect()
+        raw_data = db.fetch_data_query(query)
+        db.close()
+
+        data = MemberModel.parse_data(self.bot, raw_data)
+        msg = self.build_vacation_msg(data)
+        await OutputHandler.send_pm(member, msg)
+
+    @commands.command(pass_context=True)
+    @commands.has_role("Officer")
     async def add_flask(self, ctx, member: discord.Member, flask):
         id = MemberModel.get_discord_id(member)
         query = f"UPDATE player SET FLASK_SPEND={flask} WHERE DISCORD_ID={id}"
