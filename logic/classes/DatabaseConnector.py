@@ -67,7 +67,7 @@ class DatabaseConnector(metaclass=Singleton):
                 for row in cursor.fetchall():
                     data.append(row)
             except:
-                raise Exception("DatabaseConnector:fetch_data_query - Something happenend.")
+                raise Exception(f"DatabaseConnector:fetch_data_query - Something happenend.\n Query: {query}")
             cursor.close()
             return data
 
