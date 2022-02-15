@@ -52,7 +52,7 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def add_vacation(self, ctx, member: discord.Member, vacation_start, vacation_end = None):
+    async def add_vacation(self, ctx, member: discord.Member, vacation_start, vacation_end=None):
         query = ""
         id = MemberModel.get_discord_id(member)
         date_begin = DateConverter.formate_date_for_db(vacation_start)
@@ -87,6 +87,26 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
+    async def get_vacation_players(self, ctx):
+        await asyncio.sleep(1)
+        member = settings.dictionary["last_message_author"]
+        today = DateConverter.get_current_date()
+        db_today = DateConverter.formate_date_for_db(today)
+        query = f"SELECT * FROM player " \
+                f"WHERE VACATION_END>'{db_today}' " \
+                f"OR VACATION_END IS NULL"
+
+        db = DatabaseConnector()
+        db.connect()
+        raw_data = db.fetch_data_query(query)
+        db.close()
+
+        data = MemberModel.parse_data(self.bot, raw_data)
+        msg = self.build_vacation_msg(data)
+        await OutputHandler.send_pm(member, msg)
+
+    @commands.command(pass_context=True)
+    @commands.has_role("Officer")
     async def add_flask(self, ctx, member: discord.Member, flask):
         id = MemberModel.get_discord_id(member)
         query = f"UPDATE player SET FLASK_SPEND={flask} WHERE DISCORD_ID={id}"
@@ -101,7 +121,7 @@ class PlayerCommands(commands.Cog):
     async def fetch_all(self, ctx):
         await asyncio.sleep(1)
         query = f"SELECT * FROM player;"
-        userid = settings.dictionary["last_message_author"]
+        member = settings.dictionary["last_message_author"]
 
         db = DatabaseConnector()
         db.connect()
@@ -111,22 +131,14 @@ class PlayerCommands(commands.Cog):
         data = MemberModel.parse_data(self.bot, raw_data)
         week_num = DateConverter.get_week_number()
 
-        msg = ""
-        try:
-            for member in data:
-                covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
-                msg += f"- {member.name} ist für {int(covered_weeks)} Wochen save.\n"
-        except:
-            msg = "PlayerCommands:fetch_all - Leider kam es zu Problemen bei der Verarbeitung."
-            raise Exception(f"PlayerCommands:fetch_all - Something happenend.")
-        await OutputHandler.send_pm(userid, msg)
+        msg = self.build_flask_msg(member, data, week_num)
+        await OutputHandler.send_pm(member, msg)
 
     @commands.command(pass_context=True)
     async def flask(self, ctx):
         await asyncio.sleep(1)
-        user = settings.dictionary["last_message_author"]
-        query = f"SELECT * FROM player WHERE DISCORD_ID={user.id};"
-
+        member = settings.dictionary["last_message_author"]
+        query = f"SELECT * FROM player WHERE DISCORD_ID={member.id};"
 
         db = DatabaseConnector()
         db.connect()
@@ -136,15 +148,8 @@ class PlayerCommands(commands.Cog):
         data = MemberModel.parse_data(self.bot, raw_data)
         week_num = DateConverter.get_week_number()
 
-        msg = ""
-        try:
-            for member in data:
-                covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
-                msg += f"- {member.name} ist für {int(covered_weeks)} Wochen save.\n"
-        except:
-            msg = "PlayerCommands:flask - Leider kam es zu Problemen bei der Verarbeitung."
-            raise Exception(f"PlayerCommands:flask - Something happenend.")
-        await OutputHandler.send_pm(user, msg)
+        msg = self.build_flask_msg(member, data, week_num)
+        await OutputHandler.send_pm(member, msg)
 
     def get_joined_id(self, joined_mid_year=True):
         week_number = DateConverter.get_week_number()
@@ -155,3 +160,29 @@ class PlayerCommands(commands.Cog):
 
     def flask_calculation(self, flask_spend, week_num, id_joined):
         return ((flask_spend / 2) - week_num) + id_joined
+
+    def build_flask_msg(self, member: discord.Member, data, week_num):
+        msg = ""
+        try:
+            for member in data:
+                covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
+                msg += f"- {member.name} ist für {int(covered_weeks)} Wochen save.\n"
+        except:
+            msg = "PlayerCommands:build_flask_msg -  Leider kam es zu Problemen bei der Verarbeitung."
+            raise Exception(f"PlayerCommands:build_flask_msg - Something happenend.")
+        return msg
+
+    def build_vacation_msg(self, data):
+        msg = ""
+        try:
+            for member in data:
+                if member.vacation_end != "None":
+                    vacation_end = member.vacation_end.replace("'", "")
+                    d = DateConverter.formate_date_for_bot(vacation_end)
+                    msg += f"- {member.name} kommt am {d} zurück.\n"
+                else:
+                    msg += f"- {member.name} kommt irgendwann zurück.\n"
+        except:
+            msg = "PlayerCommands:build_vacation_msg -  Leider kam es zu Problemen bei der Verarbeitung."
+            raise Exception(f"PlayerCommands:build_vacation_msg - Something happenend.")
+        return msg
