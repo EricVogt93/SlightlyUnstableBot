@@ -8,7 +8,7 @@ from discord.ext import commands
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.EmbededFieldBuilder import EmbededHandler
 from logic.models.EmbededFields import EmbededField
-from logic.helper.date import DateHelper as date_helper
+from logic.helper.DateConverter import DateConverter as date_helper
 
 
 class ReminderCommands(commands.Cog):

@@ -8,6 +8,6 @@ class BoolBitConverter:
 
     @staticmethod
     def bit_to_bool(b):
-        if b == 1:
-            return True
-        return False
+        if b == b'\x00':
+            return False
+        return True

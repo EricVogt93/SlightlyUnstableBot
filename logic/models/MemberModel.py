@@ -1,17 +1,19 @@
 import discord
+from discord.utils import get
+
+from logic.helper.BoolBitConverter import BoolBitConverter
 
 
 class MemberModel:
-    def __init__(self, name, ident, roles):
-        """
-        Konstruktor der Klasse MemberModel
-        :param name: String
-        :param ident: String
-        :param roles: Array::String
-        """
-        self.name = name
-        self.id = ident
-        self.roles = roles
+    def __init__(self, bot, primary_key, name, discord_id, vacation_start, vacation_end, flask_spend, is_trial):
+        self.primary_key = self.format_primary_key(primary_key)
+        self.name = self.format_name(name)
+        self.discord_id = discord_id
+        self.vacation_start = vacation_start
+        self.vacation_end = vacation_end
+        self.flask_spend = flask_spend
+        self.is_trial = self.format_is_trial(is_trial)
+        self.member_obj = self.get_member_obj(bot, discord_id)
 
     @staticmethod
     def get_all_member(bot):
@@ -56,3 +58,17 @@ class MemberModel:
             if role == "Trial":
                 return True
         return False
+
+    @staticmethod
+    def get_member_obj(bot, id):
+        return get(bot.get_all_members(), id=id)
+
+    def format_name(self, name):
+        return name.replace("'","")
+
+    def format_primary_key(self, pk):
+        return pk.replace("(","")
+
+    def format_is_trial(self, b):
+        BoolBitConverter.bit_to_bool(b)
+        return BoolBitConverter.bit_to_bool(b)

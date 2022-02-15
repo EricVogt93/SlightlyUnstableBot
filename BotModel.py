@@ -14,8 +14,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-class Bot(metaclass=Singleton):
-
+class BotModel(metaclass=Singleton):
     def __init__(self):
         """
         Konstruktor der Klasse Bot
@@ -35,6 +34,7 @@ class Bot(metaclass=Singleton):
         """
         Funktion startet Discord Bot.
         """
+        #ToDo: Scuffed Implementierung. BotModel in Modelordner -> Pfad join funktioniert dann nicht mehr
         cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "DEFAULT")
         token = cfg.get_value("token")
 
@@ -62,5 +62,6 @@ class Bot(metaclass=Singleton):
         Startpunkt für CommandRegisterService.
         """
         crs = CommandRegisterService(self.bot)
-        crs.register_commands()
         crs.register_events()
+        crs.register_commands()
+

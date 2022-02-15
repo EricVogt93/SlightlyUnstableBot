@@ -47,13 +47,27 @@ class DatabaseConnector(metaclass=Singleton):
             self.isConnected = True
             raise Exception("DatabaseConnector:connect - Database connection could not be closed.")
 
-    # ToDo: Ausbauen
-    def execute_query(self, query):
+    def write_data_query(self, query):
         if self.isConnected:
             cursor = self.con_obj.cursor()
             try:
                 cursor.execute(query)
             except:
-                raise Exception("DatabaseConnector:query - Something happenend.")
+                raise Exception("DatabaseConnector:write_data_query - Something happenend.")
             self.con_obj.commit()
             cursor.close()
+
+    def fetch_data_query(self, query):
+        data = []
+
+        if self.isConnected:
+            cursor = self.con_obj.cursor()
+            try:
+                cursor.execute(query)
+                for row in cursor.fetchall():
+                    data.append(row)
+            except:
+                raise Exception("DatabaseConnector:fetch_data_query - Something happenend.")
+            cursor.close()
+            return data
+

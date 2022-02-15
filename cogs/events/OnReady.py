@@ -9,6 +9,7 @@ class OnReady(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print("We have logged in.")
+        print("-------------------------")
 
         return await self.bot.change_presence(
             activity=discord.Activity(type=discord.ActivityType.playing, name="sich auf wie Murat"))

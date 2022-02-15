@@ -1,7 +1,10 @@
-from bot import Bot
+from BotModel import BotModel
+from logic import settings
 
 """
 Startpunkt
 """
-bot = Bot()
+settings.init()
+
+bot = BotModel()
 bot.start_bot()
