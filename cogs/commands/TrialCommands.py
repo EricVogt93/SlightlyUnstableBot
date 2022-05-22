@@ -49,7 +49,7 @@ class TrialCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    async def kickTrial(self, member: discord.Member, reason=None):
+    async def kickTrial(self, ctx, member: discord.Member, reason=None):
         msg = ""
         #TODO delete aus db
         userid = settings.dictionary["last_message_author"]
@@ -61,7 +61,7 @@ class TrialCommands(commands.Cog):
             msg = f"{member} wurde gekickt. Begründung: {reason}."
         self.send_pm(userid, msg)
 
-    async def send_pm(self, user, msg):
+    async def send_pm(self, ctx, user, msg):
         """
         Sendet private Nachricht an Message.Author. Benötigt Message.Author.ID und eine Message.
         :param user: Obj

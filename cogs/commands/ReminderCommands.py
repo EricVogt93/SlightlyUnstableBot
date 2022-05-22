@@ -39,7 +39,7 @@ class ReminderCommands(commands.Cog):
             t.sleep(1)
 
     @commands.command(pass_context=True)
-    async def stop_flask_reminder(self):
+    async def stop_flask_reminder(self, ctx):
         self.flask_scheduler_active = False
 
     def remind_flask(self):

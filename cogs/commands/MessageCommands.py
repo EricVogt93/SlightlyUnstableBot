@@ -17,7 +17,7 @@ class MessageCommands(commands.Cog):
         self.bot = bot
 
     @commands.command(pass_context=True)
-    async def gildentab(self):
+    async def gildentab(self, ctx):
         """
         Gibt Gildenexcel - URL zurück.
         """
@@ -27,7 +27,7 @@ class MessageCommands(commands.Cog):
         self.send_pm(user_obj, msg)
 
     @commands.command(pass_context=True)
-    async def wowaudit(self):
+    async def wowaudit(self, ctx):
         """
         Gibt WoWAudit - URL zurück.
         """
@@ -37,7 +37,7 @@ class MessageCommands(commands.Cog):
         self.send_pm(user_obj, msg)
 
     @commands.command(pass_context=True)
-    async def progress(self):
+    async def progress(self, ctx):
         """
         Gibt Progress - Pfad zurück.
         """
@@ -47,7 +47,7 @@ class MessageCommands(commands.Cog):
         self.send_pm(user_obj, msg)
 
     @commands.command(pass_context=True)
-    async def help(self):
+    async def help(self, ctx):
         """
         Gibt Hilfekontext zurück.
         """
@@ -57,7 +57,7 @@ class MessageCommands(commands.Cog):
         embView = helper.getHelpTextOfficer()
         await self.bot.send(embed=embView)
 
-    async def send_pm(self, user, msg):
+    async def send_pm(self, ctx, user, msg):
         """
         Sendet private Nachricht an Message.Author. Benötigt Message.Author.ID und eine Message.
         :param user: Obj
