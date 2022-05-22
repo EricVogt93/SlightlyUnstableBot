@@ -15,7 +15,7 @@ class FunCommands(commands.Cog):
         self.bot = bot
 
     @commands.command(pass_context=True)
-    async def hurensohns(self, bot):
+    async def hurensohn(self, bot):
         await bot.send(self.settings["hurensohn"])
 
     @commands.command(pass_context=True)
