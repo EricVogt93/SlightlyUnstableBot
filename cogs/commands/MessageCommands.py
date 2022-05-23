@@ -24,27 +24,25 @@ class MessageCommands(commands.Cog):
         user_obj = settings.dictionary["last_message_author"]
         url = self.cfg["spreadsheet_path"]
         msg = f"Gildentabelle: {url}"
-        self.send_pm(user_obj, msg)
+        await self.send_pm(ctx, ctx.author, msg)
 
     @commands.command(pass_context=True)
     async def wowaudit(self, ctx):
         """
         Gibt WoWAudit - URL zurück.
         """
-        user_obj = settings.dictionary["last_message_author"]
         url = self.cfg["wowaudit_path"]
         msg = f"Raidanmeldungen: {url}"
-        self.send_pm(user_obj, msg)
+        await self.send_pm(ctx, ctx.author, msg)
 
     @commands.command(pass_context=True)
     async def progress(self, ctx):
         """
         Gibt Progress - Pfad zurück.
         """
-        user_obj = settings.dictionary["last_message_author"]
         url = self.cfg["progstats_path"]
         msg = f"Progressseite: {url}"
-        self.send_pm(user_obj, msg)
+        await self.send_pm(ctx, ctx.author, msg)
 
     @commands.command(pass_context=True)
     async def help(self, ctx):
