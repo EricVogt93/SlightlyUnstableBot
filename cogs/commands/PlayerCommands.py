@@ -22,7 +22,7 @@ class PlayerCommands(commands.Cog):
         self.bot = bot
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def add_gamer(self, ctx, member: discord.Member, joined_mid_year=True):
         name = str(member.name)
         id = MemberModel.get_discord_id(member)
@@ -40,7 +40,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def delete_gamer(self, ctx, member: discord.Member):
         id = MemberModel.get_discord_id(member)
         query = f"DELETE FROM player WHERE DISCORD_ID={id}"
@@ -51,7 +51,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def add_vacation(self, ctx, member: discord.Member, vacation_start, vacation_end=None):
         query = ""
         id = MemberModel.get_discord_id(member)
@@ -69,7 +69,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def end_vacation(self, ctx, member: discord.Member, vacation_end=None):
         id = MemberModel.get_discord_id(member)
 
@@ -86,7 +86,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def get_vacation_players(self, ctx):
         await asyncio.sleep(1)
         member = settings.dictionary["last_message_author"]
@@ -106,7 +106,7 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(member, msg)
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def get_players_in_vacation(self, ctx):
         await asyncio.sleep(1)
         member = settings.dictionary["last_message_author"]
@@ -127,7 +127,7 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(member, msg)
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def add_flask(self, ctx, member: discord.Member, flask):
         id = MemberModel.get_discord_id(member)
         query = f"UPDATE player SET FLASK_SPEND={flask} WHERE DISCORD_ID={id}"
@@ -138,7 +138,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def fetch_all(self, ctx):
         await asyncio.sleep(1)
         query = f"SELECT * FROM player;"
