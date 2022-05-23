@@ -49,11 +49,10 @@ class MessageCommands(commands.Cog):
         """
         Gibt Hilfekontext zurück.
         """
-        user_obj = settings.dictionary["last_message_author"]
         helper = HelpHandler()
         # ToDo: Message Author Rolle filtern und entsprechende Hilfe ausgeben
         embView = helper.getHelpTextOfficer()
-        await self.bot.send(embed=embView)
+        await ctx.send(embed=embView)
 
     async def send_pm(self, ctx, user, msg):
         """
