@@ -28,11 +28,7 @@ class DatabaseConnector(metaclass=Singleton):
 
     def connect(self):
         try:
-            self.con_obj = pyodbc.connect(f'Driver={self.driver};'
-                                          f'Server={self.server};'
-                                          f'Database={self.database};'
-                                          f'UID={self.user};'
-                                          f'PWD={self.pw};')
+            self.con_obj = pyodbc.connect("Driver={SQL Server};Server=mssql4.nbg4.domainxyz.de,10433;Database=db_su;Uid=suroot;Pwd=Abgehen123;")
             self.isConnected = True
         except:
             # ToDo: Auslagern ExceptionManager.py

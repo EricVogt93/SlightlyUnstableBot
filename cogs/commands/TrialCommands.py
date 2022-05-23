@@ -36,7 +36,7 @@ class TrialCommands(commands.Cog):
         for member in data:
             msg += f"{i} - {member.name}; {member.discord_id}\n"
             i += 1
-        await self.send_pm(userid, msg)
+        await self.send_pm(ctx, userid, msg)
 
     @commands.command(pass_context=True)
     async def makeTrial(self, ctx, member: discord.Member):
