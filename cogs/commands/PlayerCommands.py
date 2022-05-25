@@ -31,12 +31,33 @@ class PlayerCommands(commands.Cog):
         id_joined = self.get_joined_id(joined_mid_year)
 
         query = f"INSERT INTO player " \
-                f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED) VALUES " \
-                f"('{name}', {id}, {is_trial}, {id_joined});"
+                f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED)" \
+                f"(VALUES '{name}', {id}, {is_trial}, {id_joined});"
 
         db = DatabaseConnector()
         db.connect()
         db.write_data_query(query)
+        db.close()
+
+    @commands.command(pass_context=True)
+    @commands.has_role("Officer")
+    async def add_all_gamer(self, ctx):
+        db = DatabaseConnector()
+        db.connect()
+
+        all_member = MemberModel.get_all_member()
+        filtered_member = MemberModel.filter_member_by_role(all_member, "Raider")
+
+        for m in filtered_member:
+            name = str(m.name)
+            id = MemberModel.get_discord_id(m)
+            is_trial_bool = MemberModel.is_trial(m)
+            is_trial = BoolBitConverter.bool_to_bit(is_trial_bool)
+
+            query = f"INSERT INTO player " \
+                    f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL)  " \
+                    f"(VALUES '{name}', {id}, {is_trial});"
+            db.write_data_query(query)
         db.close()
 
     @commands.command(pass_context=True)

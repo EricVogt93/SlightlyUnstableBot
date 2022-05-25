@@ -5,14 +5,11 @@ import discord
 import schedule
 import time as t
 
-from datetime import *
 from discord.ext import commands
 
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.DatabaseConnector import DatabaseConnector
-from logic.classes.EmbededFieldBuilder import EmbededHandler
 from logic.classes.OutputHandler import OutputHandler
-from logic.models.EmbededFields import EmbededField
 from logic.helper.DateConverter import DateConverter as date_helper, DateConverter
 from logic.models.MemberModel import MemberModel
 
