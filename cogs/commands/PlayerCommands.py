@@ -22,7 +22,7 @@ class PlayerCommands(commands.Cog):
         self.bot = bot
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def add_gamer(self, ctx, member: discord.Member, joined_mid_year=True):
         name = str(member.name)
         id = MemberModel.get_discord_id(member)
@@ -31,8 +31,8 @@ class PlayerCommands(commands.Cog):
         id_joined = self.get_joined_id(joined_mid_year)
 
         query = f"INSERT INTO player " \
-                f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED)" \
-                f"(VALUES '{name}', {id}, {is_trial}, {id_joined});"
+                f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED) VALUES " \
+                f"('{name}', {id}, {is_trial}, {id_joined});"
 
         db = DatabaseConnector()
         db.connect()
@@ -40,28 +40,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
-    async def add_all_gamer(self, ctx):
-        db = DatabaseConnector()
-        db.connect()
-
-        all_member = MemberModel.get_all_member()
-        filtered_member = MemberModel.filter_member_by_role(all_member, "Raider")
-
-        for m in filtered_member:
-            name = str(m.name)
-            id = MemberModel.get_discord_id(m)
-            is_trial_bool = MemberModel.is_trial(m)
-            is_trial = BoolBitConverter.bool_to_bit(is_trial_bool)
-
-            query = f"INSERT INTO player " \
-                    f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL)  " \
-                    f"(VALUES '{name}', {id}, {is_trial});"
-            db.write_data_query(query)
-        db.close()
-
-    @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def delete_gamer(self, ctx, member: discord.Member):
         id = MemberModel.get_discord_id(member)
         query = f"DELETE FROM player WHERE DISCORD_ID={id}"
@@ -72,7 +51,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def add_vacation(self, ctx, member: discord.Member, vacation_start, vacation_end=None):
         query = ""
         id = MemberModel.get_discord_id(member)
@@ -90,7 +69,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def end_vacation(self, ctx, member: discord.Member, vacation_end=None):
         id = MemberModel.get_discord_id(member)
 
@@ -107,7 +86,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def get_vacation_players(self, ctx):
         await asyncio.sleep(1)
         member = settings.dictionary["last_message_author"]
@@ -127,7 +106,7 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(member, msg)
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def get_players_in_vacation(self, ctx):
         await asyncio.sleep(1)
         member = settings.dictionary["last_message_author"]
@@ -148,7 +127,7 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(member, msg)
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def add_flask(self, ctx, member: discord.Member, flask):
         id = MemberModel.get_discord_id(member)
         query = f"UPDATE player SET FLASK_SPEND={flask} WHERE DISCORD_ID={id}"
@@ -159,7 +138,7 @@ class PlayerCommands(commands.Cog):
         db.close()
 
     @commands.command(pass_context=True)
-    @commands.has_role("Officer")
+    @commands.has_role('Entwickler')
     async def fetch_all(self, ctx):
         await asyncio.sleep(1)
         query = f"SELECT * FROM player;"
