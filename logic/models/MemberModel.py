@@ -1,3 +1,5 @@
+from datetime import date
+
 import discord
 from discord.utils import get
 
@@ -25,10 +27,11 @@ class MemberModel:
         :return: Array::String
         """
         array_members = []
+        today = date.today()
         i = 0
         for guild in bot.guilds:
             for member in guild.members:
-                array_members[i] = MemberModel(member.name, member.id, member.roles)
+                array_members[i] = MemberModel(bot, i, member.name, member.id, "", "", "0", False, today)
                 i = i + 1
         return array_members
 

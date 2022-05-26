@@ -1,5 +1,6 @@
 import os
 import pyodbc
+import mysql.connector
 
 from logic.classes.ConfigHandler import ConfigHandler
 
@@ -28,7 +29,7 @@ class DatabaseConnector(metaclass=Singleton):
 
     def connect(self):
         try:
-            self.con_obj = pyodbc.connect("Driver={SQL Server};Server=mssql4.nbg4.domainxyz.de,10433;Database=db_su;Uid=suroot;Pwd=Abgehen123;")
+            self.con_obj = mysql.connector.connect(user="subot", password="Kax9hD85Xx6KD8pYPz00", host="jkap.net", port=33306, database="subot")
             self.isConnected = True
         except:
             # ToDo: Auslagern ExceptionManager.py
@@ -43,27 +44,26 @@ class DatabaseConnector(metaclass=Singleton):
             self.isConnected = True
             raise Exception("DatabaseConnector:connect - Database connection could not be closed.")
 
-    def write_data_query(self, query):
+    def write_data_query(self, sql, val):
         if self.isConnected:
             cursor = self.con_obj.cursor()
             try:
-                cursor.execute(query)
+                cursor.execute(sql, val)
             except:
                 raise Exception("DatabaseConnector:write_data_query - Something happenend.")
             self.con_obj.commit()
             cursor.close()
 
-    def fetch_data_query(self, query):
+    def fetch_data_query(self, sql):
         data = []
 
         if self.isConnected:
             cursor = self.con_obj.cursor()
             try:
-                cursor.execute(query)
-                for row in cursor.fetchall():
-                    data.append(row)
+                cursor.execute(sql)
+                data = cursor.fetchall()
             except:
-                raise Exception(f"DatabaseConnector:fetch_data_query - Something happenend.\n Query: {query}")
+                raise Exception(f"DatabaseConnector:fetch_data_query - Something happenend.\n Query: {sql}\n Values: {val}")
             cursor.close()
             return data
 

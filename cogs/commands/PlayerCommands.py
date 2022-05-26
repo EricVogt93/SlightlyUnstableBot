@@ -30,14 +30,17 @@ class PlayerCommands(commands.Cog):
         is_trial = BoolBitConverter.bool_to_bit(is_trial_bool)
         id_joined = self.get_joined_id(joined_mid_year)
 
-        query = f"INSERT INTO player " \
+        sql = f"INSERT INTO player " \
                 f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED)" \
-                f"(VALUES '{name}', {id}, {is_trial}, {id_joined});"
+                f"VALUES (%s, %s, %s, %s);"
+        val = (name, id, is_trial, id_joined)
 
         db = DatabaseConnector()
         db.connect()
-        db.write_data_query(query)
+        db.write_data_query(sql, val)
         db.close()
+        msg = f"Spieler in Datenbank geadded {id}!"
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
@@ -45,7 +48,7 @@ class PlayerCommands(commands.Cog):
         db = DatabaseConnector()
         db.connect()
 
-        all_member = MemberModel.get_all_member()
+        all_member = MemberModel.get_all_member(self.bot)
         filtered_member = MemberModel.filter_member_by_role(all_member, "Raider")
 
         for m in filtered_member:
@@ -70,6 +73,8 @@ class PlayerCommands(commands.Cog):
         db.connect()
         db.write_data_query(query)
         db.close()
+        msg = f"Spieler mit {id} gelöscht!"
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
@@ -79,15 +84,19 @@ class PlayerCommands(commands.Cog):
         date_begin = DateConverter.formate_date_for_db(vacation_start)
 
         if vacation_end is None:
-            query = f"UPDATE player SET VACATION_START='{date_begin}' WHERE DISCORD_ID={id}"
+            sql = "UPDATE player SET VACATION_START=%s WHERE DISCORD_ID=%s"
+            val = (date_begin, id)
         else:
             date_end = DateConverter.formate_date_for_db(vacation_end)
-            query = f"UPDATE player SET VACATION_START='{date_begin}', VACATION_END='{date_end}' WHERE DISCORD_ID={id}"
+            sql = "UPDATE player SET VACATION_START=%s, VACATION_END=%s WHERE DISCORD_ID=%s"
+            val = (date_begin, date_end, id)
 
         db = DatabaseConnector()
         db.connect()
-        db.write_data_query(query)
+        db.write_data_query(sql, val)
         db.close()
+        msg = f"Urlaub added für {id}!"
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
@@ -99,71 +108,72 @@ class PlayerCommands(commands.Cog):
 
         date = DateConverter.formate_date_for_db(vacation_end)
 
-        query = f"UPDATE player SET VACATION_END='{date}' WHERE DISCORD_ID={id}"
+        sql = "UPDATE player SET VACATION_END=date%s WHERE DISCORD_ID=%s"
+        val = (date, id)
 
         db = DatabaseConnector()
         db.connect()
-        db.write_data_query(query)
+        db.write_data_query(sql, val)
         db.close()
+        msg = f"Urlaubsende({date}) added für {id}!"
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
     async def get_vacation_players(self, ctx):
         await asyncio.sleep(1)
-        member = settings.dictionary["last_message_author"]
         today = DateConverter.get_current_date()
         db_today = DateConverter.formate_date_for_db(today)
-        query = f"SELECT * FROM player " \
-                f"WHERE VACATION_END>'{db_today}' " \
-                f"OR VACATION_END IS NULL"
+        sql = f"SELECT * FROM player WHERE VACATION_END>%s OR VACATION_END IS NULL"
+        val = (db_today)
 
         db = DatabaseConnector()
         db.connect()
-        raw_data = db.fetch_data_query(query)
+        raw_data = db.fetch_data_query(sql, val)
         db.close()
 
         data = MemberModel.parse_data(self.bot, raw_data)
         msg = self.build_vacation_msg(data)
-        await OutputHandler.send_pm(member, msg)
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
     async def get_players_in_vacation(self, ctx):
         await asyncio.sleep(1)
-        member = settings.dictionary["last_message_author"]
         today = DateConverter.get_current_date()
         db_today = DateConverter.formate_date_for_db(today)
-        query = f"SELECT * FROM player " \
-                f"WHERE VACATION_END>'{db_today}' " \
-                f"OR VACATION_END IS NULL " \
-                f"AND VACATION_END<'{db_today}' "
+        sql = f"SELECT * FROM player WHERE VACATION_END>{db_today} OR VACATION_END IS NULL AND VACATION_END<{db_today};"
 
         db = DatabaseConnector()
         db.connect()
-        raw_data = db.fetch_data_query(query)
+        raw_data = db.fetch_data_query(sql)
         db.close()
 
         data = MemberModel.parse_data(self.bot, raw_data)
         msg = self.build_vacation_msg(data)
+        if msg == "":
+            msg = "Niemand ist momentan im Urlaub!"
         await OutputHandler.send_pm(member, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
     async def add_flask(self, ctx, member: discord.Member, flask):
         id = MemberModel.get_discord_id(member)
-        query = f"UPDATE player SET FLASK_SPEND={flask} WHERE DISCORD_ID={id}"
+        sql = f"UPDATE player SET FLASK_SPEND=%s WHERE DISCORD_ID=%s"
+        val = (flask, id)
 
         db = DatabaseConnector()
         db.connect()
-        db.write_data_query(query)
+        db.write_data_query(sql, val)
         db.close()
+        msg = f"{flask} added für {id}!"
+        await OutputHandler.send_pm(member, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
     async def fetch_all(self, ctx):
         await asyncio.sleep(1)
         query = f"SELECT * FROM player;"
-        member = settings.dictionary["last_message_author"]
 
         db = DatabaseConnector()
         db.connect()
@@ -173,13 +183,12 @@ class PlayerCommands(commands.Cog):
         data = MemberModel.parse_data(self.bot, raw_data)
         week_num = DateConverter.get_week_number()
 
-        msg = self.build_flask_msg(member, data, week_num)
-        await OutputHandler.send_pm(member, msg)
+        msg = self.build_flask_msg(ctx.author, data, week_num)
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     async def flask(self, ctx):
         await asyncio.sleep(1)
-        member = settings.dictionary["last_message_author"]
         query = f"SELECT * FROM player WHERE DISCORD_ID={member.id};"
 
         db = DatabaseConnector()
@@ -190,8 +199,8 @@ class PlayerCommands(commands.Cog):
         data = MemberModel.parse_data(self.bot, raw_data)
         week_num = DateConverter.get_week_number()
 
-        msg = self.build_flask_msg(member, data, week_num)
-        await OutputHandler.send_pm(member, msg)
+        msg = self.build_flask_msg(ctx.author, data, week_num)
+        await OutputHandler.send_pm(ctx.author, msg)
 
     def get_joined_id(self, joined_mid_year=True):
         week_number = DateConverter.get_week_number()
