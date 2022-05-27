@@ -4,6 +4,7 @@ from cogs.commands.MessageCommands import MessageCommands
 from cogs.commands.ReminderCommands import ReminderCommands
 from cogs.commands.PlayerCommands import PlayerCommands
 from cogs.commands.TrialCommands import TrialCommands
+from cogs.commands.ReminderCommands import ReminderCommands
 from cogs.events.OnMessage import OnMessage
 from cogs.events.OnReady import OnReady
 
