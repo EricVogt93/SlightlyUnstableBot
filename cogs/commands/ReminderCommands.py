@@ -70,6 +70,6 @@ class ReminderCommands(commands.Cog):
         return ((flask_spend / 2) - week_num) + int(id_joined)
 
     @remind_flask.before_loop
-    async def before(self):
+    async def before_flask_reminder(self):
         await self.bot.wait_until_ready()
-        print("Finished waiting")
+        print("Finished waiting - flask_reminder")
