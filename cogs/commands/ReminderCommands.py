@@ -35,7 +35,8 @@ class ReminderCommands(commands.Cog):
     async def stop_flask_reminder(self, ctx):
         self.flask_scheduler_active = False
 
-    @tasks.loop(hours=24)
+    # Weekly Reminder
+    @tasks.loop(hours=168)
     async def remind_flask(self):
         query = f"SELECT * FROM player;"
         week_num = DateConverter.get_week_number()
