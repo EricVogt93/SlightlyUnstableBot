@@ -6,6 +6,7 @@ from discord.ext import commands
 
 from logic import settings
 from logic.classes.DatabaseConnector import DatabaseConnector
+from logic.classes.OutputHandler import OutputHandler
 from logic.helper.BoolBitConverter import BoolBitConverter
 from logic.models.MemberModel import MemberModel
 
@@ -21,7 +22,6 @@ class TrialCommands(commands.Cog):
     @commands.command(pass_context=True)
     async def showTrials(self, ctx):
         await asyncio.sleep(1)
-        userid = settings.dictionary["last_message_author"]
         bit = BoolBitConverter.bool_to_bit(True)
         query = f"SELECT * FROM player WHERE IS_TRIAL = {bit}"
 
@@ -36,30 +36,33 @@ class TrialCommands(commands.Cog):
         for member in data:
             msg += f"{i} - {member.name}; {member.discord_id}\n"
             i += 1
-        await self.send_pm(ctx, userid, msg)
+        await self.send_pm(ctx, ctx.author, msg)
 
     @commands.command(pass_context=True)
     async def makeTrial(self, ctx, member: discord.Member):
         await asyncio.sleep(1)
-        query = f"UPDATE player SET IS_TRIAL=1 WHERE DISCORD_ID = {member.id}"
+        sql = f"UPDATE player SET IS_TRIAL=%s WHERE DISCORD_ID = %s"
+        val = (1, member.id)
 
         db = DatabaseConnector()
         db.connect()
-        db.write_data_query(query)
+        db.write_data_query(sql, val)
         db.close()
+
+        msg = f"Spieler {member.name} ist jetzt Trial."
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     async def kickTrial(self, ctx, member: discord.Member, reason=None):
         msg = ""
         #TODO delete aus db
-        userid = settings.dictionary["last_message_author"]
         if not reason:
             await member.kick()
             msg = f"{member} wurde gekickt."
         else:
             await member.kick(reason=reason)
             msg = f"{member} wurde gekickt. Begründung: {reason}."
-        self.send_pm(userid, msg)
+        OutputHandler.send_pm(ctx.author, msg)
 
     async def send_pm(self, ctx, user, msg):
         """

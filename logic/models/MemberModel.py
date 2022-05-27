@@ -74,15 +74,18 @@ class MemberModel:
         return pk.replace("(", "")
 
     def format_id_joined(self, id):
-        return int(id.replace(")", ""))
+        if id != 'None':
+            return int(id.replace(")", ""))
+        return "21"
 
     def format_is_trial(self, b):
-        BoolBitConverter.bit_to_bool(b)
         return BoolBitConverter.bit_to_bool(b)
 
     def format_flask(self, flask):
+        if ")" in flask:
+            flask = flask.replace(")", "")
         if flask != "None":
-            return int(float(flask))
+            return float(flask)
         return 0
 
     @staticmethod

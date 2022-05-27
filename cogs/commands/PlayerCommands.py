@@ -153,7 +153,7 @@ class PlayerCommands(commands.Cog):
         msg = self.build_vacation_msg(data)
         if msg == "":
             msg = "Niemand ist momentan im Urlaub!"
-        await OutputHandler.send_pm(member, msg)
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
@@ -167,7 +167,7 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(sql, val)
         db.close()
         msg = f"{flask} added für {id}!"
-        await OutputHandler.send_pm(member, msg)
+        await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
@@ -187,9 +187,10 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
-    async def flask(self, ctx):
+    async def flask(self, ctx, member: discord.Member):
         await asyncio.sleep(1)
-        query = f"SELECT * FROM player WHERE DISCORD_ID={member.id};"
+        id = MemberModel.get_discord_id(member)
+        query = f"SELECT * FROM player WHERE DISCORD_ID={id};"
 
         db = DatabaseConnector()
         db.connect()
@@ -199,7 +200,7 @@ class PlayerCommands(commands.Cog):
         data = MemberModel.parse_data(self.bot, raw_data)
         week_num = DateConverter.get_week_number()
 
-        msg = self.build_flask_msg(ctx.author, data, week_num)
+        msg = self.build_flask_msg(member, data, week_num)
         await OutputHandler.send_pm(ctx.author, msg)
 
     def get_joined_id(self, joined_mid_year=True):
@@ -210,14 +211,14 @@ class PlayerCommands(commands.Cog):
         return 0
 
     def flask_calculation(self, flask_spend, week_num, id_joined):
-        return ((flask_spend / 2) - week_num) + id_joined
+        return ((flask_spend / 2) - week_num) + int(id_joined)
 
     def build_flask_msg(self, member: discord.Member, data, week_num):
         msg = ""
         try:
             for member in data:
                 covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
-                msg += f"- {member.name} ist für {int(covered_weeks)} Wochen save.\n"
+                msg += f"- {member.name} ist für {str(covered_weeks)} Wochen save.\n"
         except:
             msg = "PlayerCommands:build_flask_msg -  Leider kam es zu Problemen bei der Verarbeitung."
             raise Exception(f"PlayerCommands:build_flask_msg - Something happenend.")
