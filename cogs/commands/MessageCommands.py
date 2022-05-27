@@ -49,10 +49,18 @@ class MessageCommands(commands.Cog):
         """
         Gibt Hilfekontext zurück.
         """
-        helper = HelpHandler()
+        helplist = list()
         # ToDo: Message Author Rolle filtern und entsprechende Hilfe ausgeben
-        embView = helper.getHelpTextOfficer()
-        await ctx.send(embed=embView)
+        helplist.append(HelpHandler().get_player_cmd_help())
+        helplist.append(HelpHandler().get_character_cmd_help())
+        helplist.append(HelpHandler().get_trial_cmd_help())
+        helplist.append(HelpHandler().get_message_cmd_help())
+        helplist.append(HelpHandler().get_fun_cmd_help())
+        helplist.append(HelpHandler().get_reminder_cmd_help())
+
+
+        for embView in helplist:
+            await ctx.send(embed=embView)
 
     async def send_pm(self, ctx, user, msg):
         """

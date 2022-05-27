@@ -27,11 +27,13 @@ class ReminderCommands(commands.Cog):
         self.flask_scheduler_active = False
 
     @commands.command()
+    @commands.has_role("Officer")
     async def start_flask_reminder(self, ctx):
         self.flask_scheduler_active = True
         self.remind_flask.start()
 
     @commands.command(pass_context=True)
+    @commands.has_role("Officer")
     async def stop_flask_reminder(self, ctx):
         self.flask_scheduler_active = False
 

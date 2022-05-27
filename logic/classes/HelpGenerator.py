@@ -3,46 +3,54 @@ import discord
 
 class HelpHandler:
 
-    def getHelpTextOfficer(self):
-        embView = discord.Embed(title="Bob the mover - Hilfe", description="Eric ist der Beste!", color=0xffffff)
-        embView.add_field(name="!addFlasks",
-                          value="Offi only - Added Flask für angegeben Spieler. (Parm: member, flaskanzahl)",
-                          inline=False)
-        embView.add_field(name="!kickTrial", value="Offi only - Kickt Spieler. (Parm: member, reason [mit ""])",
-                          inline=False)
-        embView.add_field(name="!addGamer", value="Offi only - Fügt Spieler zur Datenbank hinzu. (Parm: member)",
-                          inline=False)
-        embView.add_field(name="!addVac", value="Offi only - Startet Spieler - Urlaub. (Parm: member)", inline=False)
-        embView.add_field(name="!delVac", value="Offi only - Beendet Spieler - Urlaub. (Parm: member)", inline=False)
-        embView.add_field(name="!getVacGamers", value="Offi only - Gibt alle Spieler zurück die im Urlaub sind.",
-                          inline=False)
-        embView.add_field(name="!createAppl",
-                          value="Offi only - Zeigt Bewerbungsmessage. (Parm: url, datum [dd.MM.yy], Zeit [hh:mm])",
-                          inline=False)
-        embView.add_field(name="!fetchGamers", value="Offi only - Gibt Flaskcount aller Spieler zurück.", inline=False)
-        embView.add_field(name="!mLead", value="Offi only - Moved Offis zu Offiziersstube.", inline=False)
-        embView.add_field(name="!mRaid", value="Offi only - Moved Offis zum Raidchannel.", inline=False)
-        embView.add_field(name="!startThread", value="Offi only - Startet die Notifications", inline=False)
-        embView.add_field(name="!stopThread", value="Offi only - Stoppt die Notifications", inline=False)
-        embView.add_field(name="!ashen", value="Get a random inspirational quote", inline=False)
-        embView.add_field(name="!flasks", value="Gibt eingezahlte FLask - Anzahl zurück.", inline=False)
-        embView.add_field(name="!gildentab", value="Gibt wowaudit Gildentabelle zurück.", inline=False)
-        embView.add_field(name="!nein", value="Get a random inspirational quote", inline=False)
-        embView.add_field(name="!hurensohn", value="Get a random inspirational quote", inline=False)
-        embView.add_field(name="!progress", value="Gibt Progress - Seite zurück.", inline=False)
-        embView.add_field(name="!wowaudit", value="Gibt wowaudit Anmeldeseite zurück.", inline=False)
-        embView.add_field(name="!trialList", value="Offi only - Gibt die aktuelle Trialliste zurück.")
-        embView.add_field(name="!overduegamers",
-                          value="Offi only - Gibt eine Liste aller Leute zurück, die mit den Flask hinten sind.")
+    @staticmethod
+    def get_player_cmd_help():
+        embView = discord.Embed(title="Spielerbezogene Commands", description="Slightly Unbotable", color=0xf00000)
+        embView.add_field(name="!add_gamer", value="(Parm: @member, datum[dd-MM-yyyy]) - Fügt Spieler zur DB hinzu.", inline=False)
+        embView.add_field(name="!delete_gamer", value="(Parm: @member) - Entfernt Spieler aus der DB.", inline=False)
+        embView.add_field(name="!add_vacation", value="(Parm: @member,  vacation start datum[dd-MM-yyyy, OPTIONAL: vacation ende datum[dd-MM-yyyy])- Setzt Urlaubsdaten.", inline=False)
+        embView.add_field(name="!add_vacation", value="(Parm: @member,  vacation ende datum[dd-MM-yyyy]) - Setzt  Urlaubsende.", inline=False)
+        embView.add_field(name="!get_vacation_players", value="Gibt alle Urlaube aller Spieler zurück.", inline=False)
+        embView.add_field(name="!get_players_in_vacation", value="Gibt alle Spieler die gerade im Urlaub sind zurück.", inline=False)
+        embView.add_field(name="!add_flask", value="(Parm: @member,  Flaskanzahl]) - Hinterlegt gezahlte Flask für Spieler.",inline=False)
+        embView.add_field(name="!fetch_all", value="Gibt alle eingezahlten Flask für alle eingezahlten Spieler zurück", inline=False)
+        embView.add_field(name="!flask", value="(Parm: @member]) - Gibt Flask für spezifischen Spieler zurück.", inline=False)
         return embView
 
-    def getHelpText(self):
-        embView = discord.Embed(title="Bob the mover - Hilfe", description="Eric ist der Beste!", color=0xffffff)
-        embView.add_field(name="!ashen", value="Get a random inspirational quote", inline=False)
-        embView.add_field(name="!flasks", value="Gibt eingezahlte FLask - Anzahl zurück.", inline=False)
-        embView.add_field(name="!gildentab", value="Gibt wowaudit Gildentabelle zurück.", inline=False)
-        embView.add_field(name="!nein", value="Get a random inspirational quote", inline=False)
-        embView.add_field(name="!hurensohn", value="Get a random inspirational quote", inline=False)
-        embView.add_field(name="!progress", value="Gibt Progress - Seite zurück.", inline=False)
-        embView.add_field(name="!wowaudit", value="Gibt wowaudit Anmeldeseite zurück.", inline=False)
+    @staticmethod
+    def get_character_cmd_help():
+        embView = discord.Embed(title="Charakterbezogene Commands", description="Slightly Unbotable", color=0xf00000)
+        embView.add_field(name="!add_character_information", value="(Parm: name, klasse, spec, rolle) - Verlinkt Spieler mit Main Charakter", inline=False)
+        return embView
+
+    @staticmethod
+    def get_trial_cmd_help():
+        embView = discord.Embed(title="Trialbezogene Commands", description="Slightly Unbotable", color=0xf00000)
+        embView.add_field(name="!showTrails", value="Gibt Liste mit allen aktiven Trials zurück", inline=False)
+        embView.add_field(name="!makeTrail", value="Gibt Spieler Trial Status", inline=False)
+        return embView
+
+    @staticmethod
+    def get_message_cmd_help():
+        embView = discord.Embed(title="Informationsbezogene Commands", description="Slightly Unbotable", color=0xf00000)
+        embView.add_field(name="!gildentab", value="Gibt Gildentabelle zurück", inline=False)
+        embView.add_field(name="!wowaudit", value="Gibt wowaudit zurück", inline=False)
+        embView.add_field(name="!progress", value="Gibt Progressseite zurück", inline=False)
+        return embView
+
+    @staticmethod
+    def get_fun_cmd_help():
+        embView = discord.Embed(title="Inspirierende Commands", description="Slightly Unbotable", color=0xf00000)
+        embView.add_field(name="!hurensohn", value="Get a random inspiring quote.", inline=False)
+        embView.add_field(name="!ja", value="Get a random inspiring quote.", inline=False)
+        embView.add_field(name="!nein", value="Get a random inspiring quote.", inline=False)
+        embView.add_field(name="!robinsmutter", value="Get a random inspiring quote.", inline=False)
+        embView.add_field(name="!whiteknight", value="Get a random inspiring quote.", inline=False)
+        embView.add_field(name="!jeremy", value="Get a random inspiring quote.", inline=False)
+        return embView
+
+    @staticmethod
+    def get_reminder_cmd_help():
+        embView = discord.Embed(title="Reminderbezogene Commands", description="Slightly Unbotable", color=0xf00000)
+        embView.add_field(name="!start_flask_reminder", value="Startet Flaskreminderthread.", inline=False)
         return embView

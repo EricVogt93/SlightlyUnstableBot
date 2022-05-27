@@ -39,6 +39,7 @@ class TrialCommands(commands.Cog):
         await self.send_pm(ctx, ctx.author, msg)
 
     @commands.command(pass_context=True)
+    @commands.has_role("Officer")
     async def makeTrial(self, ctx, member: discord.Member):
         await asyncio.sleep(1)
         sql = f"UPDATE player SET IS_TRIAL=%s WHERE DISCORD_ID = %s"
@@ -53,6 +54,7 @@ class TrialCommands(commands.Cog):
         await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
+    @commands.has_role("Officer")
     async def kickTrial(self, ctx, member: discord.Member, reason=None):
         msg = ""
         #TODO delete aus db
