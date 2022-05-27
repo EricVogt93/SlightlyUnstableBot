@@ -160,7 +160,12 @@ class PlayerCommands(commands.Cog):
     async def add_flask(self, ctx, member: discord.Member, flask):
         id = MemberModel.get_discord_id(member)
         sql = f"UPDATE player SET FLASK_SPEND=%s WHERE DISCORD_ID=%s"
-        val = (flask, id)
+        val = None
+
+        if self.get_paid_flask() is not None:
+            val = (flask + self.get_paid_flask(), id)
+        else:
+            val = (flask, id)
 
         db = DatabaseConnector()
         db.connect()
@@ -202,6 +207,17 @@ class PlayerCommands(commands.Cog):
 
         msg = self.build_flask_msg(member, data, week_num)
         await OutputHandler.send_pm(ctx.author, msg)
+
+    def get_paid_flask(self, ctx, member: discord.Member):
+        id = MemberModel.get_discord_id(member)
+        sql = f"SELECT FLASK_SPEND FROM player WHERE DISCORD_ID={id}"
+
+        db = DatabaseConnector()
+        db.connect()
+        raw_data = db.fetch_data_query(sql)
+        db.close()
+        return raw_data
+
 
     def get_joined_id(self, joined_mid_year=True):
         week_number = DateConverter.get_week_number()
