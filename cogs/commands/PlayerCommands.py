@@ -161,9 +161,11 @@ class PlayerCommands(commands.Cog):
         id = MemberModel.get_discord_id(member)
         sql = f"UPDATE player SET FLASK_SPEND=%s WHERE DISCORD_ID=%s"
         val = None
+        paid_flask_tpl = self.get_paid_flask(ctx, member)
+        paid_flask = paid_flask_tpl[0][0]
 
-        if self.get_paid_flask() is not None:
-            val = (flask + self.get_paid_flask(), id)
+        if paid_flask is not None:
+            val = (int(flask) + int(paid_flask), id)
         else:
             val = (flask, id)
 
