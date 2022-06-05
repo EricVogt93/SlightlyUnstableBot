@@ -50,23 +50,20 @@ class ReminderCommands(commands.Cog):
         print("checking...")
 
         data = MemberModel.parse_data(self.bot, raw_data)
-
-        for member in data:
-            msg = self.build_flask_reminder_msg(member, week_num)
-            await OutputHandler.send_pm(member.member_obj, msg)
-
-    def build_flask_reminder_msg(self, member: discord.Member, week_num):
         msg = ""
-        covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
+        for member in data:
+            covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
+            if covered_weeks <= 0:
+                msg = self.build_flask_reminder_msg(member, covered_weeks)
+                await OutputHandler.send_pm(member.member_obj, msg)
+
+    def build_flask_reminder_msg(self, member: discord.Member, covered_weeks):
+        msg = ""
 
         if int(covered_weeks) <= 0:
             msg = f"FLASKSTEUER - REMINDER\n" \
                   f"Hi {member.name}, du bist {int(covered_weeks)} Wochen behind mit deinen Flask.\n" \
                   f"Bitte schicke Grondo oder Samed neue Flask. Bevorzugt per Ingame-Mail."
-        else:
-            msg = f"FLASKSTEUER - REMINDER\n" \
-                  f"Hi {member.name}, du bist noch {int(covered_weeks)} Wochen sicher.\n"
-
         return msg
 
     def flask_calculation(self, flask_spend, week_num, id_joined):
