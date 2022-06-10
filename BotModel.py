@@ -19,7 +19,7 @@ class BotModel(metaclass=Singleton):
         """
         Konstruktor der Klasse Bot
         """
-        self.prefix = "!"
+        self.prefix = "/"
         self.intents = nextcord.Intents.all()
         self.bot = None
         self.isDebugMode = True
