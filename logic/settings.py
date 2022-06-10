@@ -1,3 +1,5 @@
 def init():
     global dictionary
-    dictionary = {}
+    dictionary = {
+        "Discord_ID": "248577393441112065"
+    }

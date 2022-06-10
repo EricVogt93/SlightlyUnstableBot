@@ -2,6 +2,8 @@ import asyncio
 
 import nextcord
 from nextcord.ext import commands
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.abc import GuildChannel
 
 from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.OutputHandler import OutputHandler
@@ -18,9 +20,9 @@ class PlayerCommands(commands.Cog):
         """
         self.bot = bot
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="add_gamer", description="Fügt Spieler zur DB hinzu.")
     @commands.has_role("Officer")
-    async def add_gamer(self, ctx, member: nextcord.Member, joined_mid_year=True):
+    async def add_gamer(self, interaction: Interaction, member: nextcord.Member, joined_mid_year=True):
         name = str(member.name)
         id = MemberModel.get_discord_id(member)
         is_trial_bool = MemberModel.is_trial(member)
@@ -37,11 +39,11 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(sql, val)
         db.close()
         msg = f"Spieler in Datenbank geadded {id}!"
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interaction.author, msg)
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="add_all_gamer", description="Fügt alle Spieler auf einmal zur DB hinzu.")
     @commands.has_role("Officer")
-    async def add_all_gamer(self, ctx):
+    async def add_all_gamer(self, interaction: Interaction):
         db = DatabaseConnector()
         db.connect()
 
@@ -60,9 +62,9 @@ class PlayerCommands(commands.Cog):
             db.write_data_query(query)
         db.close()
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="delete_gamer", description="Löscht Spieler aus Datenbank.")
     @commands.has_role("Officer")
-    async def delete_gamer(self, ctx, member: nextcord.Member):
+    async def delete_gamer(self, interaction: Interaction, member: nextcord.Member):
         id = MemberModel.get_discord_id(member)
         query = f"DELETE FROM player WHERE DISCORD_ID={id}"
 
@@ -71,7 +73,7 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(query)
         db.close()
         msg = f"Spieler mit {id} gelöscht!"
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interaction.author, msg)
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
