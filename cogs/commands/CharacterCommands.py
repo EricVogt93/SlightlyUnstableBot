@@ -1,6 +1,6 @@
 import asyncio
 
-from discord.ext import commands
+from nextcord.ext import commands
 
 from logic import settings
 from logic.classes.DatabaseConnector import DatabaseConnector

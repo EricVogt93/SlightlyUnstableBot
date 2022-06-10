@@ -1,11 +1,11 @@
 import asyncio
 import os
 import requests
-import discord
+import nextcord
 import schedule
 import time as t
 
-from discord.ext import commands, tasks
+from nextcord.ext import commands, tasks
 
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.DatabaseConnector import DatabaseConnector
@@ -57,7 +57,7 @@ class ReminderCommands(commands.Cog):
                 msg = self.build_flask_reminder_msg(member, covered_weeks)
                 await OutputHandler.send_pm(member.member_obj, msg)
 
-    def build_flask_reminder_msg(self, member: discord.Member, covered_weeks):
+    def build_flask_reminder_msg(self, member: nextcord.Member, covered_weeks):
         msg = ""
 
         if int(covered_weeks) <= 0:

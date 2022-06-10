@@ -1,7 +1,7 @@
 import os
 
 from logic.classes.ConfigHandler import ConfigHandler
-from discord.ext import commands
+from nextcord.ext import commands
 
 
 class FunCommands(commands.Cog):

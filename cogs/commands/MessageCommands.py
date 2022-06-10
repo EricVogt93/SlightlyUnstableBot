@@ -3,7 +3,7 @@ import os
 from logic import settings
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.HelpGenerator import HelpHandler
-from discord.ext import commands
+from nextcord.ext import commands
 
 
 class MessageCommands(commands.Cog):

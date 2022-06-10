@@ -1,11 +1,8 @@
 import asyncio
-from datetime import date
 
-import discord
+import nextcord
+from nextcord.ext import commands
 
-from discord.ext import commands
-
-from logic import settings
 from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.OutputHandler import OutputHandler
 from logic.helper.BoolBitConverter import BoolBitConverter
@@ -23,7 +20,7 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def add_gamer(self, ctx, member: discord.Member, joined_mid_year=True):
+    async def add_gamer(self, ctx, member: nextcord.Member, joined_mid_year=True):
         name = str(member.name)
         id = MemberModel.get_discord_id(member)
         is_trial_bool = MemberModel.is_trial(member)
@@ -65,7 +62,7 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def delete_gamer(self, ctx, member: discord.Member):
+    async def delete_gamer(self, ctx, member: nextcord.Member):
         id = MemberModel.get_discord_id(member)
         query = f"DELETE FROM player WHERE DISCORD_ID={id}"
 
@@ -78,7 +75,7 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def add_vacation(self, ctx, member: discord.Member, vacation_start, vacation_end=None):
+    async def add_vacation(self, ctx, member: nextcord.Member, vacation_start, vacation_end=None):
         query = ""
         id = MemberModel.get_discord_id(member)
         date_begin = DateConverter.formate_date_for_db(vacation_start)
@@ -100,7 +97,7 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def end_vacation(self, ctx, member: discord.Member, vacation_end=None):
+    async def end_vacation(self, ctx, member: nextcord.Member, vacation_end=None):
         id = MemberModel.get_discord_id(member)
 
         if vacation_end is None:
@@ -157,7 +154,7 @@ class PlayerCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def add_flask(self, ctx, member: discord.Member, flask):
+    async def add_flask(self, ctx, member: nextcord.Member, flask):
         id = MemberModel.get_discord_id(member)
         sql = f"UPDATE player SET FLASK_SPEND=%s WHERE DISCORD_ID=%s"
         val = None
@@ -194,7 +191,7 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(ctx.author, msg)
 
     @commands.command(pass_context=True)
-    async def flask(self, ctx, member: discord.Member):
+    async def flask(self, ctx, member: nextcord.Member):
         await asyncio.sleep(1)
         id = MemberModel.get_discord_id(member)
         query = f"SELECT * FROM player WHERE DISCORD_ID={id};"
@@ -210,7 +207,7 @@ class PlayerCommands(commands.Cog):
         msg = self.build_flask_msg(member, data, week_num)
         await OutputHandler.send_pm(ctx.author, msg)
 
-    def get_paid_flask(self, ctx, member: discord.Member):
+    def get_paid_flask(self, ctx, member: nextcord.Member):
         id = MemberModel.get_discord_id(member)
         sql = f"SELECT FLASK_SPEND FROM player WHERE DISCORD_ID={id}"
 
@@ -231,7 +228,7 @@ class PlayerCommands(commands.Cog):
     def flask_calculation(self, flask_spend, week_num, id_joined):
         return ((flask_spend / 2) - week_num) + int(id_joined)
 
-    def build_flask_msg(self, member: discord.Member, data, week_num):
+    def build_flask_msg(self, member: nextcord.Member, data, week_num):
         msg = ""
         try:
             for member in data:

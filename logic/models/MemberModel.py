@@ -1,7 +1,7 @@
 from datetime import date
 
-import discord
-from discord.utils import get
+import nextcord
+from nextcord.utils import get
 
 from logic.helper.BoolBitConverter import BoolBitConverter
 
@@ -54,11 +54,11 @@ class MemberModel:
         return array_members
 
     @staticmethod
-    def get_discord_id(member: discord.Member):
+    def get_discord_id(member: nextcord.Member):
         return int(member.id)
 
     @staticmethod
-    def is_trial(member: discord.Member):
+    def is_trial(member: nextcord.Member):
         for role in member.roles:
             if role == "Trial":
                 return True

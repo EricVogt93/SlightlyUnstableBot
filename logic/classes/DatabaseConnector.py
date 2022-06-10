@@ -1,5 +1,4 @@
 import os
-import pyodbc
 import mysql.connector
 
 from logic.classes.ConfigHandler import ConfigHandler
