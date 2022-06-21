@@ -3,7 +3,10 @@ import os
 from logic import settings
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.HelpGenerator import HelpHandler
-from discord.ext import commands
+
+import nextcord
+from nextcord.ext import commands
+from nextcord import Interaction, SlashOption, ChannelType
 
 
 class MessageCommands(commands.Cog):
@@ -16,7 +19,7 @@ class MessageCommands(commands.Cog):
         self.cfg = cfg_obj.load()
         self.bot = bot
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="gildentab", description="Gibt Link zur (deprecated) Gildenexcel zurück.")
     async def gildentab(self, ctx):
         """
         Gibt Gildenexcel - URL zurück.
@@ -26,7 +29,7 @@ class MessageCommands(commands.Cog):
         msg = f"Gildentabelle: {url}"
         await self.send_pm(ctx, ctx.author, msg)
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="wowaudit", description="Gibt Link zu wowaudit zurück.")
     async def wowaudit(self, ctx):
         """
         Gibt WoWAudit - URL zurück.
@@ -35,7 +38,7 @@ class MessageCommands(commands.Cog):
         msg = f"Raidanmeldungen: {url}"
         await self.send_pm(ctx, ctx.author, msg)
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="progress", description="Gibt Link zur Progress-Seite zurück.")
     async def progress(self, ctx):
         """
         Gibt Progress - Pfad zurück.
@@ -44,7 +47,7 @@ class MessageCommands(commands.Cog):
         msg = f"Progressseite: {url}"
         await self.send_pm(ctx, ctx.author, msg)
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="help", description="Gibt Hilfe zurück.")
     async def help(self, ctx):
         """
         Gibt Hilfekontext zurück.

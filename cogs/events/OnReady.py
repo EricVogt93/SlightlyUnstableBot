@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 
 
 class OnReady(commands.Cog):
@@ -12,4 +12,4 @@ class OnReady(commands.Cog):
         print("-------------------------")
 
         return await self.bot.change_presence(
-            activity=discord.Activity(type=discord.ActivityType.playing, name="sich auf wie Murat"))
+            activity=nextcord.Activity(type=nextcord.ActivityType.playing, name="sich auf wie Murat"))

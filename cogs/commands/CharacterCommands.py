@@ -1,11 +1,12 @@
 import asyncio
 
-from discord.ext import commands
+from nextcord.ext import commands
+from nextcord import Interaction, SlashOption, ChannelType
+from nextcord.abc import GuildChannel
 
 from logic import settings
 from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.models.MemberModel import MemberModel
-
 
 class CharacterCommands(commands.Cog):
     def __init__(self, bot):

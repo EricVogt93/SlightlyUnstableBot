@@ -1,8 +1,8 @@
 import asyncio
 
-import discord
+import nextcord
 
-from discord.ext import commands
+from nextcord.ext import commands
 
 from logic import settings
 from logic.classes.DatabaseConnector import DatabaseConnector
@@ -40,7 +40,7 @@ class TrialCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def makeTrial(self, ctx, member: discord.Member):
+    async def makeTrial(self, ctx, member: nextcord.Member):
         await asyncio.sleep(1)
         sql = f"UPDATE player SET IS_TRIAL=%s WHERE DISCORD_ID = %s"
         val = (1, member.id)
@@ -55,7 +55,7 @@ class TrialCommands(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.has_role("Officer")
-    async def kickTrial(self, ctx, member: discord.Member, reason=None):
+    async def kickTrial(self, ctx, member: nextcord.Member, reason=None):
         msg = ""
         #TODO delete aus db
         if not reason:

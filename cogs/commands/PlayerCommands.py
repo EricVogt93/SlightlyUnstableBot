@@ -1,11 +1,9 @@
 import asyncio
-from datetime import date
 
-import discord
+import nextcord
+from nextcord.ext import commands
+from nextcord import Interaction, SlashOption, ChannelType
 
-from discord.ext import commands
-
-from logic import settings
 from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.OutputHandler import OutputHandler
 from logic.helper.BoolBitConverter import BoolBitConverter
@@ -21,9 +19,9 @@ class PlayerCommands(commands.Cog):
         """
         self.bot = bot
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="add_gamer", description="Fügt Spieler zur DB hinzu.")
     @commands.has_role("Officer")
-    async def add_gamer(self, ctx, member: discord.Member, joined_mid_year=True):
+    async def add_gamer(self, interaction: Interaction, member: nextcord.Member, joined_mid_year=True):
         name = str(member.name)
         id = MemberModel.get_discord_id(member)
         is_trial_bool = MemberModel.is_trial(member)
@@ -40,32 +38,13 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(sql, val)
         db.close()
         msg = f"Spieler in Datenbank geadded {id}!"
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
-    @commands.command(pass_context=True)
+    #ToDo: Fixen
+    @nextcord.slash_command(name="delete_gamer", description="Löscht Spieler aus Datenbank.")
     @commands.has_role("Officer")
-    async def add_all_gamer(self, ctx):
-        db = DatabaseConnector()
-        db.connect()
-
-        all_member = MemberModel.get_all_member(self.bot)
-        filtered_member = MemberModel.filter_member_by_role(all_member, "Raider")
-
-        for m in filtered_member:
-            name = str(m.name)
-            id = MemberModel.get_discord_id(m)
-            is_trial_bool = MemberModel.is_trial(m)
-            is_trial = BoolBitConverter.bool_to_bit(is_trial_bool)
-
-            query = f"INSERT INTO player " \
-                    f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL)  " \
-                    f"(VALUES '{name}', {id}, {is_trial});"
-            db.write_data_query(query)
-        db.close()
-
-    @commands.command(pass_context=True)
-    @commands.has_role("Officer")
-    async def delete_gamer(self, ctx, member: discord.Member):
+    async def delete_gamer(self, interaction: Interaction, member: nextcord.Member):
         id = MemberModel.get_discord_id(member)
         query = f"DELETE FROM player WHERE DISCORD_ID={id}"
 
@@ -74,11 +53,12 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(query)
         db.close()
         msg = f"Spieler mit {id} gelöscht!"
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="add_vacation", description="Fügt Urlaubsdaten für Spieler hinzu.")
     @commands.has_role("Officer")
-    async def add_vacation(self, ctx, member: discord.Member, vacation_start, vacation_end=None):
+    async def add_vacation(self, interaction: Interaction, member: nextcord.Member, vacation_start, vacation_end=None):
         query = ""
         id = MemberModel.get_discord_id(member)
         date_begin = DateConverter.formate_date_for_db(vacation_start)
@@ -96,11 +76,12 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(sql, val)
         db.close()
         msg = f"Urlaub added für {id}!"
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="end_vacation", description="Fügt Urlaubsende für Spieler hinzu.")
     @commands.has_role("Officer")
-    async def end_vacation(self, ctx, member: discord.Member, vacation_end=None):
+    async def end_vacation(self, interactions: Interaction, member: nextcord.Member, vacation_end=None):
         id = MemberModel.get_discord_id(member)
 
         if vacation_end is None:
@@ -116,29 +97,12 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(sql, val)
         db.close()
         msg = f"Urlaubsende({date}) added für {id}!"
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interactions.user, msg)
+        await interaction.response.send_message("Done.")
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="get_players_in_vacation", description="Gibt alle Spieler zurück die gerade im Urlaub sind")
     @commands.has_role("Officer")
-    async def get_vacation_players(self, ctx):
-        await asyncio.sleep(1)
-        today = DateConverter.get_current_date()
-        db_today = DateConverter.formate_date_for_db(today)
-        sql = f"SELECT * FROM player WHERE VACATION_END>%s OR VACATION_END IS NULL"
-        val = (db_today)
-
-        db = DatabaseConnector()
-        db.connect()
-        raw_data = db.fetch_data_query(sql, val)
-        db.close()
-
-        data = MemberModel.parse_data(self.bot, raw_data)
-        msg = self.build_vacation_msg(data)
-        await OutputHandler.send_pm(ctx.author, msg)
-
-    @commands.command(pass_context=True)
-    @commands.has_role("Officer")
-    async def get_players_in_vacation(self, ctx):
+    async def get_players_in_vacation(self, interaction: Interaction):
         await asyncio.sleep(1)
         today = DateConverter.get_current_date()
         db_today = DateConverter.formate_date_for_db(today)
@@ -153,15 +117,16 @@ class PlayerCommands(commands.Cog):
         msg = self.build_vacation_msg(data)
         if msg == "":
             msg = "Niemand ist momentan im Urlaub!"
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="add_flask", description="Zahlt Flask für Spieler ein.")
     @commands.has_role("Officer")
-    async def add_flask(self, ctx, member: discord.Member, flask):
+    async def add_flask(self, interaction: Interaction, member: nextcord.Member, flask):
         id = MemberModel.get_discord_id(member)
         sql = f"UPDATE player SET FLASK_SPEND=%s WHERE DISCORD_ID=%s"
         val = None
-        paid_flask_tpl = self.get_paid_flask(ctx, member)
+        paid_flask_tpl = self.get_paid_flask(interaction, member)
         paid_flask = paid_flask_tpl[0][0]
 
         if paid_flask is not None:
@@ -174,12 +139,12 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(sql, val)
         db.close()
         msg = f"{flask} added für {id}!"
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="fetch_all", description="Gibt alle Spieler und ihren Flask-Stand zurück.")
     @commands.has_role("Officer")
-    async def fetch_all(self, ctx):
-        await asyncio.sleep(1)
+    async def fetch_all(self, interaction: Interaction):
         query = f"SELECT * FROM player;"
 
         db = DatabaseConnector()
@@ -190,12 +155,12 @@ class PlayerCommands(commands.Cog):
         data = MemberModel.parse_data(self.bot, raw_data)
         week_num = DateConverter.get_week_number()
 
-        msg = self.build_flask_msg(ctx.author, data, week_num)
-        await OutputHandler.send_pm(ctx.author, msg)
+        msg = self.build_flask_msg(interaction.user, data, week_num)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
-    @commands.command(pass_context=True)
-    async def flask(self, ctx, member: discord.Member):
-        await asyncio.sleep(1)
+    @nextcord.slash_command(name="flask", description="Gibt Flaskstand für einen Spieler zurück.")
+    async def flask(self, interaction: Interaction, member: nextcord.Member):
         id = MemberModel.get_discord_id(member)
         query = f"SELECT * FROM player WHERE DISCORD_ID={id};"
 
@@ -208,9 +173,10 @@ class PlayerCommands(commands.Cog):
         week_num = DateConverter.get_week_number()
 
         msg = self.build_flask_msg(member, data, week_num)
-        await OutputHandler.send_pm(ctx.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
-    def get_paid_flask(self, ctx, member: discord.Member):
+    def get_paid_flask(self, ctx, member: nextcord.Member):
         id = MemberModel.get_discord_id(member)
         sql = f"SELECT FLASK_SPEND FROM player WHERE DISCORD_ID={id}"
 
@@ -231,7 +197,7 @@ class PlayerCommands(commands.Cog):
     def flask_calculation(self, flask_spend, week_num, id_joined):
         return ((flask_spend / 2) - week_num) + int(id_joined)
 
-    def build_flask_msg(self, member: discord.Member, data, week_num):
+    def build_flask_msg(self, member: nextcord.Member, data, week_num):
         msg = ""
         try:
             for member in data:

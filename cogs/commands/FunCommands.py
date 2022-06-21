@@ -1,7 +1,10 @@
 import os
 
 from logic.classes.ConfigHandler import ConfigHandler
-from discord.ext import commands
+
+import nextcord
+from nextcord.ext import commands
+from nextcord import Interaction, SlashOption, ChannelType
 
 
 class FunCommands(commands.Cog):
@@ -14,26 +17,22 @@ class FunCommands(commands.Cog):
         self.settings = cfg.load()
         self.bot = bot
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="hurensohn", description="Hurensohn des Monats.")
     async def hurensohn(self, bot):
         await bot.send(self.settings["hurensohn"])
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="ja", description="Ja.")
     async def ja(self, bot):
         await bot.send(self.settings["ja"])
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="nein", description="Nein.")
     async def nein(self, bot):
         await bot.send(self.settings["nein"])
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="robinsmutter", description="Titten von Robins Mutter.")
     async def robinsmutter(self, bot):
         await bot.send(self.settings["robins_mutter"])
 
-    @commands.command(pass_context=True)
+    @nextcord.slash_command(name="whiteknight", description="Whiteknight des Monats.")
     async def whiteknight(self, bot):
         await bot.send(self.settings["whiteknight"])
-
-    @commands.command(pass_context=True)
-    async def jeremy(self, bot):
-        await bot.send(self.settings["jeremy"])

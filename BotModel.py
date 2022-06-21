@@ -1,6 +1,6 @@
 import os
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 from logic.classes.ConfigHandler import ConfigHandler
 from cogs.CommandRegisterService import CommandRegisterService
 
@@ -19,8 +19,8 @@ class BotModel(metaclass=Singleton):
         """
         Konstruktor der Klasse Bot
         """
-        self.prefix = "!"
-        self.intents = discord.Intents.all()
+        self.prefix = "/"
+        self.intents = nextcord.Intents.all()
         self.bot = None
         self.isDebugMode = True
 
