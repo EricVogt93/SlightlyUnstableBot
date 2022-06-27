@@ -98,7 +98,7 @@ class PlayerCommands(commands.Cog):
         db.close()
         msg = f"Urlaubsende({date}) added für {id}!"
         await OutputHandler.send_pm(interactions.user, msg)
-        await interaction.response.send_message("Done.")
+        await interactions.response.send_message("Done.")
 
     @nextcord.slash_command(name="get_players_in_vacation", description="Gibt alle Spieler zurück die gerade im Urlaub sind")
     @commands.has_role("Officer")
