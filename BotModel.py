@@ -34,7 +34,6 @@ class BotModel(metaclass=Singleton):
         """
         Funktion startet Discord Bot.
         """
-        #ToDo: Scuffed Implementierung. BotModel in Modelordner -> Pfad join funktioniert dann nicht mehr
         cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "DEFAULT")
         token = cfg.get_value("token")
 

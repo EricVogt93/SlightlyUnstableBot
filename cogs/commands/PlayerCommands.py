@@ -37,22 +37,22 @@ class PlayerCommands(commands.Cog):
         db.connect()
         db.write_data_query(sql, val)
         db.close()
-        msg = f"Spieler in Datenbank geadded {id}!"
+        msg = f"Spieler in Datenbank geadded {member.name}!"
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
-    #ToDo: Fixen
     @nextcord.slash_command(name="delete_gamer", description="Löscht Spieler aus Datenbank.")
     @commands.has_role("Officer")
     async def delete_gamer(self, interaction: Interaction, member: nextcord.Member):
         id = MemberModel.get_discord_id(member)
-        query = f"DELETE FROM player WHERE DISCORD_ID={id}"
+        query = f"DELETE FROM player WHERE DISCORD_ID=(%s)"
+        val = (id,)
 
         db = DatabaseConnector()
         db.connect()
-        db.write_data_query(query)
+        db.write_data_query(query, val)
         db.close()
-        msg = f"Spieler mit {id} gelöscht!"
+        msg = f"Spieler {member.name} gelöscht!"
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
@@ -75,7 +75,7 @@ class PlayerCommands(commands.Cog):
         db.connect()
         db.write_data_query(sql, val)
         db.close()
-        msg = f"Urlaub added für {id}!"
+        msg = f"Urlaub added für {member.name}!"
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
@@ -96,7 +96,7 @@ class PlayerCommands(commands.Cog):
         db.connect()
         db.write_data_query(sql, val)
         db.close()
-        msg = f"Urlaubsende({date}) added für {id}!"
+        msg = f"Urlaubsende({date}) added für {member.name}!"
         await OutputHandler.send_pm(interactions.user, msg)
         await interaction.response.send_message("Done.")
 

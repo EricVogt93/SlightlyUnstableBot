@@ -32,12 +32,6 @@ class ReminderCommands(commands.Cog):
         self.flask_scheduler_active = True
         self.remind_flask.start()
 
-    #ToDo: Noch keine Funktion
-    @nextcord.slash_command(name="start_flask_reminder", description="Stopped Flask - Reminder")
-    @commands.has_role("Officer")
-    async def stop_flask_reminder(self, ctx):
-        self.flask_scheduler_active = False
-
     # Weekly Reminder
     @tasks.loop(hours=168)
     async def remind_flask(self):
