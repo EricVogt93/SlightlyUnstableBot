@@ -1,12 +1,12 @@
 import os
 
+import nextcord
+from nextcord import Interaction
+from nextcord.ext import commands
+
 from logic import settings
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.HelpGenerator import HelpHandler
-
-import nextcord
-from nextcord.ext import commands
-from nextcord import Interaction, SlashOption, ChannelType
 
 
 class MessageCommands(commands.Cog):

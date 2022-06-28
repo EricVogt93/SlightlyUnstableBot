@@ -36,4 +36,3 @@ class DateConverter:
         curr_date = date.today()
         year, week_num, day_of_week = curr_date.isocalendar()
         return week_num
-

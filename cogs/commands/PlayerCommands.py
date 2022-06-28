@@ -1,8 +1,8 @@
 import asyncio
 
 import nextcord
+from nextcord import Interaction
 from nextcord.ext import commands
-from nextcord import Interaction, SlashOption, ChannelType
 
 from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.OutputHandler import OutputHandler
@@ -29,8 +29,8 @@ class PlayerCommands(commands.Cog):
         id_joined = self.get_joined_id(joined_mid_year)
 
         sql = f"INSERT INTO player " \
-                f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED)" \
-                f"VALUES (%s, %s, %s, %s);"
+              f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED)" \
+              f"VALUES (%s, %s, %s, %s);"
         val = (name, id, is_trial, id_joined)
 
         db = DatabaseConnector()
@@ -100,7 +100,8 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(interactions.user, msg)
         await interaction.response.send_message("Done.")
 
-    @nextcord.slash_command(name="get_players_in_vacation", description="Gibt alle Spieler zurück die gerade im Urlaub sind")
+    @nextcord.slash_command(name="get_players_in_vacation",
+                            description="Gibt alle Spieler zurück die gerade im Urlaub sind")
     @commands.has_role("Officer")
     async def get_players_in_vacation(self, interaction: Interaction):
         await asyncio.sleep(1)
@@ -185,7 +186,6 @@ class PlayerCommands(commands.Cog):
         raw_data = db.fetch_data_query(sql)
         db.close()
         return raw_data
-
 
     def get_joined_id(self, joined_mid_year=True):
         week_number = DateConverter.get_week_number()

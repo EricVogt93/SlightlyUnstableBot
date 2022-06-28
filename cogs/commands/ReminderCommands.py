@@ -1,16 +1,13 @@
-import asyncio
 import os
-import requests
-import nextcord
-import schedule
-import time as t
+import os
 
+import nextcord
 from nextcord.ext import commands, tasks
 
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.OutputHandler import OutputHandler
-from logic.helper.DateConverter import DateConverter as date_helper, DateConverter
+from logic.helper.DateConverter import DateConverter
 from logic.models.MemberModel import MemberModel
 
 

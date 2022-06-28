@@ -1,10 +1,9 @@
 import os
 
-from logic.classes.ConfigHandler import ConfigHandler
-
 import nextcord
 from nextcord.ext import commands
-from nextcord import Interaction, SlashOption, ChannelType
+
+from logic.classes.ConfigHandler import ConfigHandler
 
 
 class FunCommands(commands.Cog):

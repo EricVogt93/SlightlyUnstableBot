@@ -1,8 +1,10 @@
 import os
+
 import nextcord
 from nextcord.ext import commands
-from logic.classes.ConfigHandler import ConfigHandler
+
 from cogs.CommandRegisterService import CommandRegisterService
+from logic.classes.ConfigHandler import ConfigHandler
 
 
 class Singleton(type):
@@ -63,4 +65,3 @@ class BotModel(metaclass=Singleton):
         crs = CommandRegisterService(self.bot)
         crs.register_events()
         crs.register_commands()
-
