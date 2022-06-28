@@ -1,5 +1,6 @@
 import nextcord
 
+
 class EmbededHandler:
     fields = []
     title = None

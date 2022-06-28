@@ -1,10 +1,8 @@
 import asyncio
 
 import nextcord
-
 from nextcord.ext import commands
 
-from logic import settings
 from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.OutputHandler import OutputHandler
 from logic.helper.BoolBitConverter import BoolBitConverter
@@ -57,7 +55,7 @@ class TrialCommands(commands.Cog):
     @commands.has_role("Officer")
     async def kickTrial(self, ctx, member: nextcord.Member, reason=None):
         msg = ""
-        #TODO delete aus db
+        # TODO delete aus db
         if not reason:
             await member.kick()
             msg = f"{member} wurde gekickt."

@@ -1,6 +1,6 @@
 ###### Requirements ######
 ###### Execute: pip install -r requirement.txt ######
-discord
+nextcord
 pyodbc
 requests
 schedule

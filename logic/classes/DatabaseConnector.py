@@ -1,4 +1,5 @@
 import os
+
 import mysql.connector
 
 from logic.classes.ConfigHandler import ConfigHandler
@@ -28,7 +29,8 @@ class DatabaseConnector(metaclass=Singleton):
 
     def connect(self):
         try:
-            self.con_obj = mysql.connector.connect(user="subot", password="Kax9hD85Xx6KD8pYPz00", host="jkap.net", port=33306, database="subot")
+            self.con_obj = mysql.connector.connect(user="subot", password="Kax9hD85Xx6KD8pYPz00", host="jkap.net",
+                                                   port=33306, database="subot")
             self.isConnected = True
         except:
             # ToDo: Auslagern ExceptionManager.py
@@ -62,7 +64,7 @@ class DatabaseConnector(metaclass=Singleton):
                 cursor.execute(sql)
                 data = cursor.fetchall()
             except:
-                raise Exception(f"DatabaseConnector:fetch_data_query - Something happenend.\n Query: {sql}\n Values: {val}")
+                raise Exception(
+                    f"DatabaseConnector:fetch_data_query - Something happenend.\n Query: {sql}\n Values: {val}")
             cursor.close()
             return data
-

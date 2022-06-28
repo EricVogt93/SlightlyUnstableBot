@@ -101,7 +101,7 @@ class MemberModel:
             joined_id = ""
             is_trial = ""
             if d[3].startswith("datetime.date"):
-                vacation_start = f"{d[3].replace('datetime.date(','')}-{d[4]}-{d[5].replace(')','')}"
+                vacation_start = f"{d[3].replace('datetime.date(', '')}-{d[4]}-{d[5].replace(')', '')}"
                 flask_spend = d[7]
                 joined_id = d[8]
                 is_trial = d[9]
@@ -111,11 +111,12 @@ class MemberModel:
                 joined_id = d[6]
                 is_trial = d[7]
             if d[3].startswith("datetime.date") and d[6].startswith("datetime.date"):
-                vacation_end = f"{d[6].replace('datetime.date(','')}-{d[7]}-{d[8].replace(')','')}"
+                vacation_end = f"{d[6].replace('datetime.date(', '')}-{d[7]}-{d[8].replace(')', '')}"
                 flask_spend = d[9]
                 joined_id = d[10]
                 is_trial = d[11]
-            else:vacation_end = "NULL"
+            else:
+                vacation_end = "NULL"
 
             member = MemberModel(bot=bot, primary_key=d[0], name=d[1], discord_id=d[2], vacation_start=vacation_start,
                                  vacation_end=vacation_end, flask_spend=flask_spend, joined_id=joined_id,
