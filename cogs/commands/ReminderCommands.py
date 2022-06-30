@@ -3,6 +3,7 @@ import os
 
 import nextcord
 from nextcord.ext import commands, tasks
+from nextcord import Interaction
 
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.DatabaseConnector import DatabaseConnector
@@ -25,12 +26,13 @@ class ReminderCommands(commands.Cog):
 
     @nextcord.slash_command(name="start_flask_reminder", description="Startet Flask - Reminder")
     @commands.has_role("Officer")
-    async def start_flask_reminder(self, ctx):
+    async def start_flask_reminder(self, interaction: Interaction):
         self.flask_scheduler_active = True
         self.remind_flask.start()
+        await interaction.response.send_message("Done.")
 
     # Weekly Reminder
-    @tasks.loop(hours=168)
+    @tasks.loop(hours=24)
     async def remind_flask(self):
         query = f"SELECT * FROM player;"
         week_num = DateConverter.get_week_number()
@@ -45,7 +47,7 @@ class ReminderCommands(commands.Cog):
         msg = ""
         for member in data:
             covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
-            if covered_weeks <= 0:
+            if covered_weeks <= 0 or covered_weeks is None or covered_weeks == "null":
                 msg = self.build_flask_reminder_msg(member, covered_weeks)
                 await OutputHandler.send_pm(member.member_obj, msg)
 
