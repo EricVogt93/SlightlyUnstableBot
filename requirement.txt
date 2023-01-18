@@ -4,3 +4,4 @@ nextcord
 pyodbc
 requests
 schedule
+mysql-connector
