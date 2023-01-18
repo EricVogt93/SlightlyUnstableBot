@@ -81,7 +81,7 @@ class PlayerCommands(commands.Cog):
 
     @nextcord.slash_command(name="end_vacation", description="Fügt Urlaubsende für Spieler hinzu.")
     @commands.has_role("Officer")
-    async def end_vacation(self, interactions: Interaction, member: nextcord.Member, vacation_end=None):
+    async def end_vacation(self, interaction: Interaction, member: nextcord.Member, vacation_end=None):
         id = MemberModel.get_discord_id(member)
 
         if vacation_end is None:

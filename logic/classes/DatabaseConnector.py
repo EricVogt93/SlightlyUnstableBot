@@ -29,8 +29,8 @@ class DatabaseConnector(metaclass=Singleton):
 
     def connect(self):
         try:
-            self.con_obj = mysql.connector.connect(user="subot", password="Kax9hD85Xx6KD8pYPz00", host="jkap.net",
-                                                   port=33306, database="subot")
+            self.con_obj = mysql.connector.connect(user="subot", password="test123", host="202.61.226.208",
+                                                   port=3306, database="subot")
             self.isConnected = True
         except:
             # ToDo: Auslagern ExceptionManager.py
