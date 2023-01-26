@@ -6,9 +6,9 @@ class MessageFilter:
         self.msg = message
 
     def check_all(self, msg):
-        return self.filter_187()
+        return self.filter_187(msg)
 
     def filter_187(self, msg):
-        if " 187 " in msg or " 187" in msg or "einsachtsieben" in msg:
+        if "einsachtsieben" in msg or "187" in msg:
             return True
         return False
