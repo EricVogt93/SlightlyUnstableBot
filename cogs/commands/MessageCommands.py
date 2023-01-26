@@ -76,30 +76,31 @@ class MessageCommands(commands.Cog):
     @nextcord.slash_command(name="w", description="Schreibe privat einen Spieler an.")
     async def w(self, interaction: Interaction, member: nextcord.Member, msg):
 
+        # Filtere Nachrichten nach bestimmten Kriterien
         filter = MessageFilter(msg)
         if(filter.check_all()):
             await interaction.response.send_message("Message wurde gefiltert fetter Hurensohn.", ephemeral=True)
+        else:
+            sender_name = interaction.user.name
+            receiver_name = MemberModel.get_member_name(member)
 
-        sender_name = interaction.user.name
-        receiver_name = MemberModel.get_member_name(member)
+            d = datetime.now()
+            today = DateConverter.get_current_date()
+            time = DateConverter.format_date_for_db(d)
+            date = DateConverter.formate_date_for_db(today)
 
-        d = datetime.now()
-        today = DateConverter.get_current_date()
-        time = DateConverter.format_date_for_db(d)
-        date = DateConverter.formate_date_for_db(today)
+            sql = f"INSERT INTO messages " \
+                  f"(DATE, TIME, SENDER, MSG, RECEIVER)" \
+                  f"VALUES(%s, %s, %s, %s, %s);"
+            val = (date, time, sender_name, msg, receiver_name)
 
-        sql = f"INSERT INTO messages " \
-              f"(DATE, TIME, SENDER, MSG, RECEIVER)" \
-              f"VALUES(%s, %s, %s, %s, %s);"
-        val = (date, time, sender_name, msg, receiver_name)
+            db = DatabaseConnector()
+            db.connect()
+            db.write_data_query(sql, val)
+            db.close()
 
-        db = DatabaseConnector()
-        db.connect()
-        db.write_data_query(sql, val)
-        db.close()
-
-        await OutputHandler.send_pm(member, msg)
-        await interaction.response.send_message("Message send.", ephemeral=True)
+            await OutputHandler.send_pm(member, msg)
+            await interaction.response.send_message("Message send.", ephemeral=True)
 
     async def send_pm(self, user, msg):
         """
