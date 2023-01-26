@@ -73,13 +73,15 @@ class MessageCommands(commands.Cog):
         for embView in helplist:
             await interaction.send(embed=embView)
 
-    @nextcord.slash_command(name="w", description="Schreibe privat einen Spieler an.")
     async def w(self, interaction: Interaction, member: nextcord.Member, msg):
 
+        sender_name = interaction.user.name
+
         # Filtere Nachrichten nach bestimmten Kriterien
-        filter = MessageFilter(msg)
-        if filter.check_all(msg):
-            await interaction.response.send_message("Message wurde gefiltert fetter Hurensohn. Details [bad word: 187]", ephemeral=True)
+        filter = MessageFilter(msg, sender_name)
+        result = filter.check_all()
+        if result != "":
+            await interaction.response.send_message(f"Message wurde gefiltert fetter Hurensohn. {result} ", ephemeral=True)
         else:
             sender_name = interaction.user.name
             receiver_name = MemberModel.get_member_name(member)

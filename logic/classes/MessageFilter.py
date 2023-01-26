@@ -2,13 +2,21 @@ import nextcord
 
 class MessageFilter:
 
-    def __init__(self, message):
+    def __init__(self, sender, message):
         self.msg = message
+        self.sender = sender
 
-    def check_all(self, msg):
-        return self.filter_187(msg)
+    def check_all(self, ):
+        return self.filter_187()
 
-    def filter_187(self, msg):
-        if "einsachtsieben" in msg or "187" in msg:
-            return True
-        return False
+    def filter_187(self):
+        if "einsachtsieben" in self.msg or "187" in self.msg:
+            return "[Detail - Bad Word: 187]"
+        return ""
+
+    def filter_spammer(self):
+        if self.sender == "Napcake":
+            return "[Details - Banned wegen Spam]"
+        if self.sender == "Synergy":
+            return "[Details - Banned wegen Spam]"
+        return ""
