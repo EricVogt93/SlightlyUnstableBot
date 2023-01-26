@@ -58,6 +58,10 @@ class MemberModel:
         return int(member.id)
 
     @staticmethod
+    def get_member_name(member: nextcord.Member):
+        return member.name
+
+    @staticmethod
     def is_trial(member: nextcord.Member):
         for role in member.roles:
             if role == "Trial":

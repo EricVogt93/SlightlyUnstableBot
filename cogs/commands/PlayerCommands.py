@@ -195,7 +195,7 @@ class PlayerCommands(commands.Cog):
         return 0
 
     def flask_calculation(self, flask_spend, week_num, id_joined):
-        return ((flask_spend / 2) - week_num) + int(id_joined)
+        return ((flask_spend / 8) - week_num) + int(id_joined)
 
     def build_flask_msg(self, member: nextcord.Member, data, week_num):
         msg = ""

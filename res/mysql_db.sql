@@ -1,4 +1,4 @@
-CREATE TABLE dbo.characters
+CREATE TABLE subot.characters
 (
     `CHARACTER_ID` INT         NOT NULL AUTO_INCREMENT,
     `PLAYER_ID`    INT         NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE dbo.characters
     PRIMARY KEY (`CHARACTER_ID`)
 )
 
-CREATE TABLE dbo.player
+CREATE TABLE subot.player
 (
     `PLAYER_ID`      INT         NOT NULL AUTO_INCREMENT,
     `PLAYER_NAME`    VARCHAR(32) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE dbo.player
     PRIMARY KEY (`PLAYER_ID`)
 )
 
-CREATE TABLE dbo.reminder
+CREATE TABLE subot.reminder
 (
     `ID`                  INT NOT NULL AUTO_INCREMENT,
     `PLAYER_ID`           INT NOT NULL,
@@ -30,10 +30,20 @@ CREATE TABLE dbo.reminder
     PRIMARY KEY (`ID`)
 )
 
-ALTER TABLE dbo.characters
+CREATE TABLE subot.messages(
+  `MSG_ID` INT NOT NULL AUTO_INCREMENT,
+  `DATE` DATE NOT NULL,
+  `TIME` VARCHAR(32) NOT NULL,
+  `SENDER` VARCHAR(32) NOT NULL,
+  `MSG` VARCHAR(32) NOT NULL,
+  `RECEIVER` VARCHAR(32) NOT NULL,
+  PRIMARY KEY(`MSG_ID`)
+);
+
+ALTER TABLE subot.characters
     ADD CONSTRAINT `PLAYER_ID_characters`
         FOREIGN KEY (`PLAYER_ID`) REFERENCES dbo.player (`PLAYER_ID`);
 
-ALTER TABLE dbo.reminder
+ALTER TABLE subot.reminder
     ADD CONSTRAINT player_reminder
         FOREIGN KEY (`PLAYER_ID`) REFERENCES dbo.player (`PLAYER_ID`);

@@ -1,12 +1,18 @@
 import os
 
+from datetime import datetime
+
 import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
 
 from logic import settings
+from logic.classes.OutputHandler import OutputHandler
 from logic.classes.ConfigHandler import ConfigHandler
+from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.classes.HelpGenerator import HelpHandler
+from logic.helper.DateConverter import DateConverter
+from logic.models.MemberModel import MemberModel
 
 
 class MessageCommands(commands.Cog):
@@ -65,6 +71,29 @@ class MessageCommands(commands.Cog):
 
         for embView in helplist:
             await interaction.send(embed=embView)
+
+    @nextcord.slash_command(name="w", description="Schreibe privat einen Spieler an.")
+    async def w(self, interaction: Interaction, member: nextcord.Member, msg):
+        sender_name = interaction.user.name
+        receiver_name = MemberModel.get_member_name(member)
+
+        d = datetime.now()
+        today = DateConverter.get_current_date()
+        time = DateConverter.format_date_for_db(d)
+        date = DateConverter.formate_date_for_db(today)
+
+        sql = f"INSERT INTO messages " \
+              f"(DATE, TIME, SENDER, MSG, RECEIVER)" \
+              f"VALUES(%s, %s, %s, %s, %s);"
+        val = (date, time, sender_name, msg, receiver_name)
+
+        db = DatabaseConnector()
+        db.connect()
+        db.write_data_query(sql, val)
+        db.close()
+
+        await OutputHandler.send_pm(member, msg)
+        await interaction.response.send_message("Message send.")
 
     async def send_pm(self, user, msg):
         """

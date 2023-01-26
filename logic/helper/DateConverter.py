@@ -36,3 +36,7 @@ class DateConverter:
         curr_date = date.today()
         year, week_num, day_of_week = curr_date.isocalendar()
         return week_num
+
+    @staticmethod
+    def format_date_for_db(time_string):
+        return time_string.strftime("%H:%M:%S")
