@@ -93,7 +93,7 @@ class MessageCommands(commands.Cog):
         db.close()
 
         await OutputHandler.send_pm(member, msg)
-        await interaction.response.send_message("Message send.")
+        await interaction.response.send_message("Message send.", ephemeral=True)
 
     async def send_pm(self, user, msg):
         """
