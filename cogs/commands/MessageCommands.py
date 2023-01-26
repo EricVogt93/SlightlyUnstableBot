@@ -7,6 +7,7 @@ from nextcord import Interaction
 from nextcord.ext import commands
 
 from logic import settings
+from logic.classes.MessageFilter import MessageFilter
 from logic.classes.OutputHandler import OutputHandler
 from logic.classes.ConfigHandler import ConfigHandler
 from logic.classes.DatabaseConnector import DatabaseConnector
@@ -74,6 +75,11 @@ class MessageCommands(commands.Cog):
 
     @nextcord.slash_command(name="w", description="Schreibe privat einen Spieler an.")
     async def w(self, interaction: Interaction, member: nextcord.Member, msg):
+
+        filter = MessageFilter(msg)
+        if(filter.check_all()):
+            await interaction.response.send_message("Message wurde gefiltert fetter Hurensohn.", ephemeral=True)
+
         sender_name = interaction.user.name
         receiver_name = MemberModel.get_member_name(member)
 
