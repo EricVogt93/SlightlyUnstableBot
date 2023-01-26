@@ -78,7 +78,7 @@ class MessageCommands(commands.Cog):
 
         # Filtere Nachrichten nach bestimmten Kriterien
         filter = MessageFilter(msg)
-        if(filter.check_all()):
+        if filter.check_all(msg):
             await interaction.response.send_message("Message wurde gefiltert fetter Hurensohn. Details [bad word: 187]", ephemeral=True)
         else:
             sender_name = interaction.user.name
