@@ -24,8 +24,8 @@ class ReminderCommands(commands.Cog):
         self.raid_dictionary = {}
         self.flask_scheduler_active = False
 
-    @nextcord.slash_command(name="start_flask_reminder", description="Startet Flask - Reminder")
     @commands.has_role("Officer")
+    @nextcord.slash_command(name="start_flask_reminder", description="Startet Flask - Reminder")
     async def start_flask_reminder(self, interaction: Interaction):
         self.flask_scheduler_active = True
         self.remind_flask.start()

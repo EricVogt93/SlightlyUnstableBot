@@ -73,6 +73,7 @@ class MessageCommands(commands.Cog):
         for embView in helplist:
             await interaction.send(embed=embView)
 
+    @nextcord.slash_command(name="w", description="Gibt Nachricht an.")
     async def w(self, interaction: Interaction, member: nextcord.Member, msg):
 
         sender_name = interaction.user.name
@@ -81,7 +82,7 @@ class MessageCommands(commands.Cog):
         filter = MessageFilter(msg, sender_name)
         result = filter.check_all()
         if result != "":
-            await interaction.response.send_message(f"Message wurde gefiltert fetter Hurensohn. {result} ", ephemeral=True)
+            await interaction.response.send_message(f"Message wurde gefiltert fetter Hurensohn. {result}", ephemeral=True)
         else:
             sender_name = interaction.user.name
             receiver_name = MemberModel.get_member_name(member)
