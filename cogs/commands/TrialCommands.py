@@ -18,7 +18,6 @@ class TrialCommands(commands.Cog):
         """
         self.bot = bot
 
-    @commands.command(pass_context=True)
     @nextcord.slash_command(name="show_trials", description="Zeigt")
     async def show_trials(self, interaction: Interaction):
         await asyncio.sleep(1)
@@ -37,13 +36,14 @@ class TrialCommands(commands.Cog):
             msg += f"{i} - {member.name}; {member.discord_id}\n"
             i += 1
 
-        OutputHandler.send_pm(interaction.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
     @commands.has_role("Officer")
     @nextcord.slash_command(name="make_trial", description="Startet Flask - Reminder")
     async def make_trial(self, interaction: Interaction, member: nextcord.Member):
         await asyncio.sleep(1)
-        sql = f"UPDATE player SET IS_TRIAL=%s WHERE DISCORD_ID = %s"
+        sql = f"UPDATE player SET IS_TRIAL=%s WHERE DISCORD_ID=%s"
         val = (1, member.id)
 
         db = DatabaseConnector()
@@ -52,7 +52,8 @@ class TrialCommands(commands.Cog):
         db.close()
 
         msg = f"Spieler {member.name} ist jetzt Trial."
-        await OutputHandler.send_pm(interaction.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")
 
     @commands.has_role("Officer")
     @nextcord.slash_command(name="kick_trial", description="Startet Flask - Reminder")
@@ -64,4 +65,5 @@ class TrialCommands(commands.Cog):
         else:
             await member.kick(reason=reason)
             msg = f"{member} wurde gekickt. Begründung: {reason}."
-        OutputHandler.send_pm(interaction.author, msg)
+        await OutputHandler.send_pm(interaction.user, msg)
+        await interaction.response.send_message("Done.")

@@ -3,6 +3,7 @@ from datetime import date
 import nextcord
 from nextcord.utils import get
 
+from logic.classes.DatabaseConnector import DatabaseConnector
 from logic.helper.BoolBitConverter import BoolBitConverter
 
 
@@ -70,6 +71,14 @@ class MemberModel:
 
     def get_member_obj(self, bot, id):
         return get(iterable=bot.get_all_members(), id=int(id))
+
+    def get_member_id_from_name(self, name):
+        query = f"SELECT * FROM player WHERE Name='{name}'"
+        db = DatabaseConnector()
+        db.connect()
+        result = db.fetch_data_query(query)
+        db.close()
+        return result[0][0]
 
     def format_name(self, name):
         return name.replace("'", "")

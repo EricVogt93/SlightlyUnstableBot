@@ -6,6 +6,7 @@ import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
 
+from cogs.commands.GeneralCommands import GeneralCommands
 from logic import settings
 from logic.classes.MessageFilter import MessageFilter
 from logic.classes.OutputHandler import OutputHandler
@@ -75,40 +76,86 @@ class MessageCommands(commands.Cog):
 
     @nextcord.slash_command(name="w", description="Gibt Nachricht an.")
     async def w(self, interaction: Interaction, member: nextcord.Member, msg):
-
         sender_name = interaction.user.name
 
         # Filtere Nachrichten nach bestimmten Kriterien
         filter = MessageFilter(msg, sender_name)
         result = filter.check_all()
         if result != "":
+            await interaction.response.send_message(f"Message wurde gefiltert fetter Hurensohn. {result}",
+                                                    ephemeral=True)
+            return
+        id = MemberModel.get_discord_id(member)
+        if GeneralCommands.get_muted_status(id) == 1:
+            await interaction.response.send_message(f"Receiver hat den Bot gemuted.", ephemeral=True)
+            return
+
+        receiver_name = MemberModel.get_member_name(member)
+
+        d = datetime.now()
+        today = DateConverter.get_current_date()
+        time = DateConverter.format_date_for_db(d)
+        date = DateConverter.formate_date_for_db(today)
+
+        sql = f"INSERT INTO messages " \
+              f"(DATE, TIME, SENDER, MSG, RECEIVER)" \
+              f"VALUES(%s, %s, %s, %s, %s);"
+        val = (date, time, sender_name, msg, receiver_name)
+
+        db = DatabaseConnector()
+        db.connect()
+        db.write_data_query(sql, val)
+        db.close()
+        msg_id = self.get_msg_id(date, time, sender_name)
+
+        await OutputHandler.send_pm(member, f"[MessageID:{msg_id}]: " + msg)
+        await interaction.response.send_message("Message send.", ephemeral=True)
+
+    async def r(self, interaction: Interaction, msg_id, msg):
+        sender_name = interaction.user.name
+        filter = MessageFilter(msg, sender_name)
+        result = filter.check_all()
+        receiver_name = self.get_sender_from_msg_id(msg_id)
+
+        if result != "":
             await interaction.response.send_message(f"Message wurde gefiltert fetter Hurensohn. {result}", ephemeral=True)
-        else:
-            sender_name = interaction.user.name
-            receiver_name = MemberModel.get_member_name(member)
+            return
 
-            d = datetime.now()
-            today = DateConverter.get_current_date()
-            time = DateConverter.format_date_for_db(d)
-            date = DateConverter.formate_date_for_db(today)
+        d = datetime.now()
+        today = DateConverter.get_current_date()
+        time = DateConverter.format_date_for_db(d)
+        date = DateConverter.formate_date_for_db(today)
 
-            sql = f"INSERT INTO messages " \
-                  f"(DATE, TIME, SENDER, MSG, RECEIVER)" \
-                  f"VALUES(%s, %s, %s, %s, %s);"
-            val = (date, time, sender_name, msg, receiver_name)
+        sql = f"INSERT INTO messages " \
+              f"(DATE, TIME, SENDER, MSG, RECEIVER)" \
+              f"VALUES(%s, %s, %s, %s, %s);"
+        val = (date, time, sender_name, msg, receiver_name)
 
-            db = DatabaseConnector()
-            db.connect()
-            db.write_data_query(sql, val)
-            db.close()
+        db = DatabaseConnector()
+        db.connect()
+        db.write_data_query(sql, val)
+        db.close()
+        msg_id = self.get_msg_id(date, time, sender_name)
 
-            await OutputHandler.send_pm(member, msg)
-            await interaction.response.send_message("Message send.", ephemeral=True)
+        sender_id = self.get_sender_from_msg_id(msg_id)
+        member = MemberModel.get_member_obj(self.bot, sender_id)
 
-    async def send_pm(self, user, msg):
-        """
-        Sendet private Nachricht an Message.Author. Benötigt Message.Author.ID und eine Message.
-        :param user: Obj
-        :param msg: String
-        """
-        await user.send(msg)
+        await OutputHandler.send_pm(member, f"[MessageID:{msg_id}]: " + msg)
+        await interaction.response.send_message("Message send.", ephemeral=True)
+
+    def get_msg_id(self, date, time, sender_name):
+        query = f"SELECT MSG_ID FROM messages WHERE DATE='{date}' AND TIME='{time}' AND SENDER='{sender_name}'"
+        db = DatabaseConnector()
+        db.connect()
+        result = db.fetch_data_query(query)
+        db.close()
+        return result[0][0]
+
+    def get_sender_from_msg_id(self, msg_id):
+        query = f"SELECT SENDER FROM messages WHERE MSG_ID='{msg_id}'"
+        db = DatabaseConnector()
+        db.connect()
+        result = db.fetch_data_query(query)
+        db.close()
+        return result[0][0]
+

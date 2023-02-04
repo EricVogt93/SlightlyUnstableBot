@@ -65,6 +65,6 @@ class DatabaseConnector(metaclass=Singleton):
                 data = cursor.fetchall()
             except:
                 raise Exception(
-                    f"DatabaseConnector:fetch_data_query - Something happenend.\n Query: {sql}\n Values: {val}")
+                    f"DatabaseConnector:fetch_data_query - Something happenend.\n Query: {sql}\n")
             cursor.close()
             return data

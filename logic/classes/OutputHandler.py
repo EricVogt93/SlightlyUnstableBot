@@ -1,6 +1,3 @@
-from BotModel import BotModel
-
-
 class OutputHandler:
     @staticmethod
     async def send_pm(user, msg):
@@ -9,8 +6,4 @@ class OutputHandler:
         :param user: Obj
         :param msg: String
         """
-        try:
-            await user.send(msg)
-        except:
-            # check if bot got ignored
-            await user.send(msg)
+        await user.send(msg)
