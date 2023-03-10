@@ -1,5 +1,3 @@
-###### Requirements ######
-###### Execute: pip install -r requirement.txt ######
 nextcord
 pyodbc
 requests
