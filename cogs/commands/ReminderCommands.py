@@ -57,11 +57,11 @@ class ReminderCommands(commands.Cog):
         if int(covered_weeks) <= 0:
             msg = f"FLASKSTEUER - REMINDER\n" \
                   f"Hi {member.name}, du bist {int(covered_weeks)} Wochen behind mit deinen 'Potion of Power (R3)'.\n" \
-                  f"Bitte schicke Grondo oder Samed neue 'Potion of Power (Rank3)'. Bevorzugt per Ingame-Mail."
+                  f"Bitte schicke Samed (Kerokrawall) neue 'Potion of Power (Rank3)'. Bevorzugt per Ingame-Mail."
         return msg
 
     def flask_calculation(self, flask_spend, week_num, id_joined):
-        return ((flask_spend / 2) - week_num) + int(id_joined)
+        return ((flask_spend / 8) - week_num) + int(id_joined)
 
     @remind_flask.before_loop
     async def before_flask_reminder(self):
