@@ -7,7 +7,6 @@ from nextcord import Interaction
 from nextcord.ext import commands
 
 from cogs.commands.GeneralCommands import GeneralCommands
-from logic import settings
 from logic.classes.MessageFilter import MessageFilter
 from logic.classes.OutputHandler import OutputHandler
 from logic.classes.ConfigHandler import ConfigHandler
