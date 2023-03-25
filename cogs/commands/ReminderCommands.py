@@ -61,7 +61,7 @@ class ReminderCommands(commands.Cog):
         return msg
 
     def flask_calculation(self, flask_spend, week_num, id_joined):
-        return ((flask_spend / 8) - week_num) + int(id_joined)
+        return ((flask_spend / 18) - week_num) + int(id_joined)
 
     @remind_flask.before_loop
     async def before_flask_reminder(self):
