@@ -8,10 +8,10 @@ from logic.classes.ConfigHandler import ConfigHandler
 class Singleton(type):
     _instances = {}
 
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+    def __call__(self, *args, **kwargs):
+        if self not in self._instances:
+            self._instances[self] = super(Singleton, self).__call__(*args, **kwargs)
+        return self._instances[self]
 
 
 class DatabaseConnector(metaclass=Singleton):
@@ -29,7 +29,7 @@ class DatabaseConnector(metaclass=Singleton):
 
     def connect(self):
         try:
-            self.con_obj = mysql.connector.connect(user="subot", password="test123", host="202.61.226.208",
+            self.con_obj = mysql.connector.connect(user="root", password="08E04v1993", host="2.203.255.81",
                                                    port=3306, database="subot")
             self.isConnected = True
         except:

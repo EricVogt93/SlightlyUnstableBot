@@ -5,6 +5,7 @@ from cogs.commands.PlayerCommands import PlayerCommands
 from cogs.commands.ReminderCommands import ReminderCommands
 from cogs.commands.TrialCommands import TrialCommands
 from cogs.commands.ReactionCommands import ReactionCommands
+from cogs.commands.MusicCommands import MusicCommands
 from cogs.events.OnMessage import OnMessage
 from cogs.events.OnReady import OnReady
 
@@ -28,6 +29,7 @@ class CommandRegisterService:
         self.bot.add_cog(TrialCommands(self.bot))
         self.bot.add_cog(ReactionCommands(self.bot))
         self.bot.add_cog(GeneralCommands(self.bot))
+        self.bot.add_cog(MusicCommands(self.bot))
 
     def register_events(self):
         """
