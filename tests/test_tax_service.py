@@ -1,20 +1,20 @@
-"""Tests for FlaskService class."""
+"""Tests for TaxService class."""
 import pytest
 from datetime import date, timedelta
 from unittest.mock import patch
 
-from logic.services.FlaskService import FlaskService, FlaskStatus
+from logic.services.TaxService import TaxService, TaxStatus
 
 
-class TestFlaskStatus:
-    """Tests for FlaskStatus dataclass."""
+class TestTaxStatus:
+    """Tests for TaxStatus dataclass."""
 
     def test_creates_status_with_all_fields(self):
-        status = FlaskStatus(
+        status = TaxStatus(
             player_name="TestPlayer",
             paid_until=date(2024, 6, 15),
             weeks_ahead=2,
-            flasks_owed=0,
+            amount_owed=0,
             is_overdue=False
         )
         assert status.player_name == "TestPlayer"
@@ -25,101 +25,101 @@ class TestFlaskStatus:
 class TestCalculateStatus:
     """Tests for calculate_status method."""
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '18'})
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '18'})
     def test_player_paid_ahead(self):
-        service = FlaskService()
+        service = TaxService()
         future_date = date.today() + timedelta(weeks=3)
 
         status = service.calculate_status(future_date, "TestPlayer")
 
         assert status.weeks_ahead >= 2  # At least 2 weeks ahead
-        assert status.flasks_owed == 0
+        assert status.amount_owed == 0
         assert status.is_overdue is False
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '18'})
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '18'})
     def test_player_is_overdue(self):
-        service = FlaskService()
+        service = TaxService()
         past_date = date.today() - timedelta(weeks=2)
 
         status = service.calculate_status(past_date, "TestPlayer")
 
         assert status.weeks_ahead < 0
-        assert status.flasks_owed > 0
+        assert status.amount_owed > 0
         assert status.is_overdue is True
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '18'})
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '18'})
     def test_player_paid_up_to_date(self):
-        service = FlaskService()
+        service = TaxService()
         today = date.today()
 
         status = service.calculate_status(today, "TestPlayer")
 
         assert status.weeks_ahead == 0
-        assert status.flasks_owed == 0
+        assert status.amount_owed == 0
         assert status.is_overdue is False
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '18'})
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '18'})
     def test_none_paid_until_treated_as_overdue(self):
-        service = FlaskService()
+        service = TaxService()
 
         status = service.calculate_status(None, "TestPlayer")
 
         # Should be overdue since None means never paid
         assert status.is_overdue is True
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '10'})
-    def test_flasks_owed_calculation(self):
-        service = FlaskService()
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '10'})
+    def test_amount_owed_calculation(self):
+        service = TaxService()
         # 2 weeks behind
         past_date = date.today() - timedelta(weeks=2)
 
         status = service.calculate_status(past_date, "TestPlayer")
 
-        # Should owe 2 weeks * 10 flasks/week = 20 flasks
-        assert status.flasks_owed == 20
+        # Should owe 2 weeks * 10 items/week = 20 items
+        assert status.amount_owed == 20
 
 
 class TestCalculateNewPaidUntil:
     """Tests for calculate_new_paid_until method."""
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '18'})
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '18'})
     def test_adds_weeks_from_current_date_if_behind(self):
-        service = FlaskService()
+        service = TaxService()
         past_date = date.today() - timedelta(weeks=5)
 
-        # Pay 36 flasks (2 weeks worth)
+        # Pay 36 items (2 weeks worth)
         new_date = service.calculate_new_paid_until(past_date, 36)
 
         # Should start from today and add 2 weeks
         expected = date.today() + timedelta(weeks=2)
         assert new_date == expected
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '18'})
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '18'})
     def test_adds_weeks_from_paid_until_if_ahead(self):
-        service = FlaskService()
+        service = TaxService()
         future_date = date.today() + timedelta(weeks=2)
 
-        # Pay 36 flasks (2 weeks worth)
+        # Pay 36 items (2 weeks worth)
         new_date = service.calculate_new_paid_until(future_date, 36)
 
         # Should add 2 weeks to the future date
         expected = future_date + timedelta(weeks=2)
         assert new_date == expected
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '18'})
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '18'})
     def test_none_paid_until_starts_from_today(self):
-        service = FlaskService()
+        service = TaxService()
 
         new_date = service.calculate_new_paid_until(None, 18)
 
         expected = date.today() + timedelta(weeks=1)
         assert new_date == expected
 
-    @patch.dict('os.environ', {'FLASK_TAX_PER_WEEK': '10'})
+    @patch.dict('os.environ', {'TAX_PER_WEEK': '10'})
     def test_respects_config_tax_rate(self):
-        service = FlaskService()
+        service = TaxService()
 
-        # 30 flasks at 10/week = 3 weeks
+        # 30 items at 10/week = 3 weeks
         new_date = service.calculate_new_paid_until(date.today(), 30)
 
         expected = date.today() + timedelta(weeks=3)
@@ -130,14 +130,14 @@ class TestGetInitialPaidUntil:
     """Tests for get_initial_paid_until method."""
 
     def test_returns_today_by_default(self):
-        service = FlaskService()
+        service = TaxService()
 
         result = service.get_initial_paid_until()
 
         assert result == date.today()
 
     def test_returns_custom_join_date(self):
-        service = FlaskService()
+        service = TaxService()
         custom_date = date(2024, 1, 15)
 
         result = service.get_initial_paid_until(custom_date)
@@ -148,13 +148,14 @@ class TestGetInitialPaidUntil:
 class TestFormatStatusMessage:
     """Tests for format_status_message method."""
 
+    @patch.dict('os.environ', {'TAX_NAME': 'flasks'})
     def test_overdue_message(self):
-        service = FlaskService()
-        status = FlaskStatus(
+        service = TaxService()
+        status = TaxStatus(
             player_name="TestPlayer",
             paid_until=date(2024, 1, 1),
             weeks_ahead=-3,
-            flasks_owed=54,
+            amount_owed=54,
             is_overdue=True
         )
 
@@ -162,15 +163,16 @@ class TestFormatStatusMessage:
 
         assert "TestPlayer" in msg
         assert "3 weeks behind" in msg
-        assert "54 flasks" in msg
+        assert "54" in msg
 
+    @patch.dict('os.environ', {'TAX_NAME': 'flasks'})
     def test_paid_up_message(self):
-        service = FlaskService()
-        status = FlaskStatus(
+        service = TaxService()
+        status = TaxStatus(
             player_name="TestPlayer",
             paid_until=date.today(),
             weeks_ahead=0,
-            flasks_owed=0,
+            amount_owed=0,
             is_overdue=False
         )
 
@@ -179,13 +181,14 @@ class TestFormatStatusMessage:
         assert "TestPlayer" in msg
         assert "Paid up to date" in msg
 
+    @patch.dict('os.environ', {'TAX_NAME': 'flasks'})
     def test_ahead_message(self):
-        service = FlaskService()
-        status = FlaskStatus(
+        service = TaxService()
+        status = TaxStatus(
             player_name="TestPlayer",
             paid_until=date.today() + timedelta(weeks=5),
             weeks_ahead=5,
-            flasks_owed=0,
+            amount_owed=0,
             is_overdue=False
         )
 
@@ -198,13 +201,14 @@ class TestFormatStatusMessage:
 class TestFormatReminderMessage:
     """Tests for format_reminder_message method."""
 
+    @patch.dict('os.environ', {'TAX_NAME': 'flasks'})
     def test_returns_empty_for_non_overdue(self):
-        service = FlaskService()
-        status = FlaskStatus(
+        service = TaxService()
+        status = TaxStatus(
             player_name="TestPlayer",
             paid_until=date.today(),
             weeks_ahead=0,
-            flasks_owed=0,
+            amount_owed=0,
             is_overdue=False
         )
 
@@ -212,18 +216,19 @@ class TestFormatReminderMessage:
 
         assert msg == ""
 
+    @patch.dict('os.environ', {'TAX_NAME': 'flasks'})
     def test_returns_reminder_for_overdue(self):
-        service = FlaskService()
-        status = FlaskStatus(
+        service = TaxService()
+        status = TaxStatus(
             player_name="TestPlayer",
             paid_until=date(2024, 1, 1),
             weeks_ahead=-2,
-            flasks_owed=36,
+            amount_owed=36,
             is_overdue=True
         )
 
         msg = service.format_reminder_message(status)
 
-        assert "FLASK TAX REMINDER" in msg
+        assert "TAX REMINDER" in msg
         assert "TestPlayer" in msg
         assert "36" in msg

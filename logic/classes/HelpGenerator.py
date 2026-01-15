@@ -17,11 +17,11 @@ class HelpHandler:
         emb_view.add_field(name="/get_vacation_players", value="Gibt alle Urlaube aller Spieler zurück.", inline=False)
         emb_view.add_field(name="/get_players_in_vacation", value="Gibt alle Spieler die gerade im Urlaub sind zurück.",
                           inline=False)
-        emb_view.add_field(name="/add_flask",
-                          value="(Parm: @member,  Flaskanzahl]) - Hinterlegt gezahlte Flask für Spieler.", inline=False)
-        emb_view.add_field(name="/fetch_all", value="Gibt alle eingezahlten Flask für alle eingezahlten Spieler zurück",
+        emb_view.add_field(name="/add_tax",
+                          value="(Parm: @member, amount) - Record tax payment for player.", inline=False)
+        emb_view.add_field(name="/fetch_all", value="Show tax status for all players.",
                           inline=False)
-        emb_view.add_field(name="/flask", value="(Parm: @member]) - Gibt Flask für spezifischen Spieler zurück.",
+        emb_view.add_field(name="/tax", value="(Parm: @member) - Show tax status for specific player.",
                           inline=False)
         return emb_view
 
@@ -62,5 +62,6 @@ class HelpHandler:
     @staticmethod
     def get_reminder_cmd_help():
         emb_view = nextcord.Embed(title="Reminderbezogene Commands", description="Slightly Unbotable", color=0xf00000)
-        emb_view.add_field(name="/start_flask_reminder", value="Startet Flaskreminderthread.", inline=False)
+        emb_view.add_field(name="/start_tax_reminder", value="Start daily tax payment reminder.", inline=False)
+        emb_view.add_field(name="/stop_tax_reminder", value="Stop tax payment reminder.", inline=False)
         return emb_view

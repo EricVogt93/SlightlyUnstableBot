@@ -1,11 +1,13 @@
 # SlightlyUnstableBot
 
-A Discord bot for managing a World of Warcraft guild. Handles player management, flask taxation, vacation tracking, raid signups, and trial member management.
+A Discord bot template for managing World of Warcraft guilds. Handles player management, weekly taxation, vacation tracking, raid signups, and trial member management.
+
+**This project is designed as a template** - fork it and customize it for your own guild!
 
 ## Features
 
 - **Player Management**: Add/remove players, track Discord IDs
-- **Flask Taxation**: Date-based tracking system with configurable tax rate, unlimited credit accumulation, automatic reminders
+- **Tax System**: Configurable weekly tax (flasks, gold, materials - whatever your guild needs)
 - **Vacation Tracking**: Record vacation periods, query who's currently away
 - **Trial System**: Manage trial members, promote or kick with reasons
 - **Raid Signups**: Send embed messages with role reactions (Tank/Heal/DD)
@@ -45,7 +47,10 @@ DB_PORT=3306
 DB_NAME=subot
 DB_USER=root
 DB_PASSWORD=your_password
-FLASK_TAX_PER_WEEK=18
+
+# Tax configuration
+TAX_PER_WEEK=18
+TAX_NAME=flasks
 ```
 
 ### 3. Setup Database
@@ -61,6 +66,37 @@ mysql -u root -p subot < res/mysql_db.sql
 ```bash
 python main.py
 ```
+
+## Customization
+
+### Tax System
+
+The tax system is fully configurable:
+
+- `TAX_PER_WEEK`: Amount owed per week (e.g., 18 flasks, 500 gold)
+- `TAX_NAME`: What to call the tax in messages (e.g., "flasks", "gold", "materials")
+
+Examples:
+```env
+# For flask tax
+TAX_PER_WEEK=18
+TAX_NAME=flasks
+
+# For gold tax
+TAX_PER_WEEK=500
+TAX_NAME=gold
+
+# For material tax
+TAX_PER_WEEK=50
+TAX_NAME=enchanting materials
+```
+
+### Guild-Specific Configuration
+
+Edit `res/bot_config.ini` to customize:
+- Error messages
+- Fun command responses
+- URLs (WoW Audit, guild spreadsheet, progress tracking)
 
 ## Project Structure
 
@@ -84,6 +120,8 @@ SlightlyUnstableBot/
 │   │   ├── DatabaseConnector.py
 │   │   ├── ConfigHandler.py
 │   │   └── OutputHandler.py
+│   ├── services/               # Business logic
+│   │   └── TaxService.py       # Tax calculation
 │   ├── models/                 # Data models
 │   └── helper/                 # Utility functions
 ├── res/                        # Configuration files
@@ -101,8 +139,8 @@ SlightlyUnstableBot/
 | `/delete_gamer` | Remove a player |
 | `/add_vacation` | Set vacation dates for a player |
 | `/end_vacation` | End a player's vacation |
-| `/add_flask` | Record flask payment |
-| `/fetch_all` | List all players with flask status |
+| `/add_tax` | Record tax payment |
+| `/fetch_all` | List all players with tax status |
 
 ### Trial Management (Officer only)
 | Command | Description |
@@ -114,7 +152,7 @@ SlightlyUnstableBot/
 ### Information
 | Command | Description |
 |---------|-------------|
-| `/flask` | Check flask status for a player |
+| `/tax` | Check tax status for a player |
 | `/gildentab` | Get guild spreadsheet link |
 | `/wowaudit` | Get WoW Audit link |
 | `/progress` | Get progress tracking link |
@@ -123,28 +161,33 @@ SlightlyUnstableBot/
 ### Reminders (Officer only)
 | Command | Description |
 |---------|-------------|
-| `/start_flask_reminder` | Start daily flask payment reminder |
-| `/stop_flask_reminder` | Stop flask payment reminder |
+| `/start_tax_reminder` | Start daily tax payment reminder |
+| `/stop_tax_reminder` | Stop tax payment reminder |
 
-## Flask Taxation System
+### Music
+| Command | Description |
+|---------|-------------|
+| `/join` | Join your voice channel |
+| `/leave` | Leave voice channel |
+| `/play` | Play audio from URL |
+| `/skip` | Skip current track |
+| `/queue` | Show music queue |
 
-The bot tracks flask/potion payments using a **date-based system** that handles year boundaries correctly:
+## Tax System
 
-- **Tax Rate**: Configurable via `FLASK_TAX_PER_WEEK` environment variable
-- **Tracking**: Stores "paid until" date instead of raw flask counts
+The bot tracks payments using a **date-based system** that handles year boundaries correctly:
+
+- **Tax Rate**: Configurable via `TAX_PER_WEEK` environment variable
+- **Tracking**: Stores "paid until" date instead of raw counts
 - **Credit**: Players can pay ahead and accumulate unlimited credit
 - **Reminders**: Automatic daily reminders for overdue players
 
 ### How it works
 
 1. New players start with `paid_until = today` (no debt)
-2. When flasks are added: `paid_until += (flasks / tax_rate) weeks`
+2. When payment is added: `paid_until += (amount / tax_rate) weeks`
 3. Status check: `weeks_ahead = (paid_until - today) / 7`
-4. If `weeks_ahead < 0`: player is behind and owes flasks
-
-### Migration from old schema
-
-If upgrading from the old `FLASK_SPEND` + `ID_JOINED` system, run the migration SQL in `res/mysql_db.sql`.
+4. If `weeks_ahead < 0`: player is behind and owes tax
 
 ## Running Tests
 
@@ -152,10 +195,6 @@ If upgrading from the old `FLASK_SPEND` + `ID_JOINED` system, run the migration 
 pytest tests/ -v
 ```
 
-## Configuration
-
-The bot uses `res/bot_config.ini` for non-sensitive configuration like URLs, error messages, and fun command responses. Sensitive credentials (tokens, passwords) are loaded from environment variables.
-
 ## License
 
-Private project - All rights reserved.
+MIT License - Feel free to use this as a template for your own guild bot!

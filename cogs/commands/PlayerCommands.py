@@ -10,7 +10,7 @@ from logic.classes.OutputHandler import OutputHandler
 from logic.helper.BoolBitConverter import BoolBitConverter
 from logic.helper.DateConverter import DateConverter
 from logic.models.MemberModel import MemberModel
-from logic.services.FlaskService import flask_service
+from logic.services.TaxService import tax_service
 
 
 class PlayerCommands(commands.Cog):
@@ -26,10 +26,10 @@ class PlayerCommands(commands.Cog):
         discord_id = MemberModel.get_discord_id(member)
         is_trial = BoolBitConverter.bool_to_bit(MemberModel.is_trial(member))
         # New players start with today as their paid_until date (no debt yet)
-        initial_paid_until = flask_service.get_initial_paid_until()
+        initial_paid_until = tax_service.get_initial_paid_until()
 
         sql = """INSERT INTO player
-                 (PLAYER_NAME, DISCORD_ID, IS_TRIAL, FLASK_PAID_UNTIL)
+                 (PLAYER_NAME, DISCORD_ID, IS_TRIAL, TAX_PAID_UNTIL)
                  VALUES (%s, %s, %s, %s)"""
         val = (name, discord_id, is_trial, initial_paid_until)
 
@@ -38,7 +38,7 @@ class PlayerCommands(commands.Cog):
         db.write_data_query(sql, val)
         db.close()
 
-        msg = f"Player {member.name} added to database! Flask payments start from {initial_paid_until}."
+        msg = f"Player {member.name} added to database! Tax payments start from {initial_paid_until}."
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
@@ -122,15 +122,15 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
-    @nextcord.slash_command(name="add_flask", description="Record flask payment for a player")
+    @nextcord.slash_command(name="add_tax", description="Record tax payment for a player")
     @commands.has_role("Officer")
-    async def add_flask(self, interaction: Interaction, member: nextcord.Member, amount: int):
+    async def add_tax(self, interaction: Interaction, member: nextcord.Member, amount: int):
         """
-        Add flask payment for a player. Updates their paid_until date.
+        Add tax payment for a player. Updates their paid_until date.
 
         Args:
             member: The player who paid
-            amount: Number of flasks paid
+            amount: Amount of tax paid
         """
         if amount <= 0:
             await interaction.response.send_message("Amount must be positive!", ephemeral=True)
@@ -142,7 +142,7 @@ class PlayerCommands(commands.Cog):
         db = DatabaseConnector()
         db.connect()
         result = db.fetch_data_query(
-            "SELECT FLASK_PAID_UNTIL FROM player WHERE DISCORD_ID = %s",
+            "SELECT TAX_PAID_UNTIL FROM player WHERE DISCORD_ID = %s",
             (discord_id,)
         )
 
@@ -154,30 +154,30 @@ class PlayerCommands(commands.Cog):
         current_paid_until = result[0][0]  # Could be None or a date
 
         # Calculate new paid_until date
-        new_paid_until = flask_service.calculate_new_paid_until(current_paid_until, amount)
+        new_paid_until = tax_service.calculate_new_paid_until(current_paid_until, amount)
 
         # Update database
         db.write_data_query(
-            "UPDATE player SET FLASK_PAID_UNTIL = %s WHERE DISCORD_ID = %s",
+            "UPDATE player SET TAX_PAID_UNTIL = %s WHERE DISCORD_ID = %s",
             (new_paid_until, discord_id)
         )
         db.close()
 
         # Get updated status
-        status = flask_service.calculate_status(new_paid_until, member.name)
+        status = tax_service.calculate_status(new_paid_until, member.name)
 
-        msg = f"Added {amount} flasks for {member.name}!\n{flask_service.format_status_message(status)}"
+        msg = f"Added {amount} {tax_service.tax_name} for {member.name}!\n{tax_service.format_status_message(status)}"
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
-    @nextcord.slash_command(name="fetch_all", description="Show flask status for all players")
+    @nextcord.slash_command(name="fetch_all", description="Show tax status for all players")
     @commands.has_role("Officer")
     async def fetch_all(self, interaction: Interaction):
-        """Show flask payment status for all players."""
+        """Show tax payment status for all players."""
         db = DatabaseConnector()
         db.connect()
         raw_data = db.fetch_data_query(
-            "SELECT PLAYER_NAME, FLASK_PAID_UNTIL FROM player ORDER BY FLASK_PAID_UNTIL ASC"
+            "SELECT PLAYER_NAME, TAX_PAID_UNTIL FROM player ORDER BY TAX_PAID_UNTIL ASC"
         )
         db.close()
 
@@ -185,24 +185,24 @@ class PlayerCommands(commands.Cog):
             await interaction.response.send_message("No players found!", ephemeral=True)
             return
 
-        msg = "**Flask Status Overview**\n\n"
+        msg = "**Tax Status Overview**\n\n"
         for row in raw_data:
             name, paid_until = row[0], row[1]
-            status = flask_service.calculate_status(paid_until, name)
-            msg += flask_service.format_status_message(status) + "\n"
+            status = tax_service.calculate_status(paid_until, name)
+            msg += tax_service.format_status_message(status) + "\n"
 
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
-    @nextcord.slash_command(name="flask", description="Check flask status for a player")
-    async def flask(self, interaction: Interaction, member: nextcord.Member):
-        """Check flask payment status for a specific player."""
+    @nextcord.slash_command(name="tax", description="Check tax status for a player")
+    async def tax(self, interaction: Interaction, member: nextcord.Member):
+        """Check tax payment status for a specific player."""
         discord_id = MemberModel.get_discord_id(member)
 
         db = DatabaseConnector()
         db.connect()
         result = db.fetch_data_query(
-            "SELECT FLASK_PAID_UNTIL FROM player WHERE DISCORD_ID = %s",
+            "SELECT TAX_PAID_UNTIL FROM player WHERE DISCORD_ID = %s",
             (discord_id,)
         )
         db.close()
@@ -212,11 +212,11 @@ class PlayerCommands(commands.Cog):
             return
 
         paid_until = result[0][0]
-        status = flask_service.calculate_status(paid_until, member.name)
+        status = tax_service.calculate_status(paid_until, member.name)
 
-        msg = f"**Flask Status for {member.name}**\n\n"
-        msg += flask_service.format_status_message(status)
-        msg += f"\n\nTax rate: {flask_service.tax_per_week} flasks/week"
+        msg = f"**Tax Status for {member.name}**\n\n"
+        msg += tax_service.format_status_message(status)
+        msg += f"\n\nTax rate: {tax_service.tax_per_week} {tax_service.tax_name}/week"
 
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")

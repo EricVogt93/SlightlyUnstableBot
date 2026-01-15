@@ -40,7 +40,7 @@ class TrialCommands(commands.Cog):
         await interaction.response.send_message("Done.")
 
     @commands.has_role("Officer")
-    @nextcord.slash_command(name="make_trial", description="Startet Flask - Reminder")
+    @nextcord.slash_command(name="make_trial", description="Mark a member as trial")
     async def make_trial(self, interaction: Interaction, member: nextcord.Member):
         await asyncio.sleep(1)
         sql = f"UPDATE player SET IS_TRIAL=%s WHERE DISCORD_ID=%s"
@@ -56,7 +56,7 @@ class TrialCommands(commands.Cog):
         await interaction.response.send_message("Done.")
 
     @commands.has_role("Officer")
-    @nextcord.slash_command(name="kick_trial", description="Startet Flask - Reminder")
+    @nextcord.slash_command(name="kick_trial", description="Kick a trial member")
     async def kick_trial(self, interaction: Interaction, member: nextcord.Member, reason=None):
         msg = ""
         if not reason:
