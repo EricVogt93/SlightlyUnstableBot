@@ -195,6 +195,19 @@ The bot tracks payments using a **date-based system** that handles year boundari
 pytest tests/ -v
 ```
 
+## Contributing
+
+This repo has **Claude Code** integrated via GitHub Actions. To request a fix or feature:
+
+1. Open a GitHub Issue
+2. Tag `@claude` in the issue description or a comment
+3. Claude will analyze the codebase and create a PR with the fix
+
+Example:
+```
+@claude please add a /clear_tax command that resets a player's tax status
+```
+
 ## License
 
 MIT License - Feel free to use this as a template for your own guild bot!
