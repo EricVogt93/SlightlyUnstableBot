@@ -1,160 +1,170 @@
+"""Message and information commands."""
+import logging
 import os
-
 from datetime import datetime
+from typing import Optional
 
 import nextcord
 from nextcord import Interaction
 from nextcord.ext import commands
+from nextcord.utils import get
 
 from cogs.commands.GeneralCommands import GeneralCommands
 from logic.classes.MessageFilter import MessageFilter
 from logic.classes.OutputHandler import OutputHandler
 from logic.classes.ConfigHandler import ConfigHandler
-from logic.classes.DatabaseConnector import DatabaseConnector
+from logic.classes.DatabaseConnector import get_db
 from logic.classes.HelpGenerator import HelpHandler
 from logic.helper.DateConverter import DateConverter
 from logic.models.MemberModel import MemberModel
 
+logger = logging.getLogger(__name__)
+
 
 class MessageCommands(commands.Cog):
+    """Handles messaging and information commands."""
+
     def __init__(self, bot):
-        """
-        Konstruktor der Klasse MessageCommands. Benötigt Instanz vom Discordbot - Objekt.
-        :param bot:
-        """
         cfg_obj = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "URL")
         self.cfg = cfg_obj.load()
         self.bot = bot
 
-    @nextcord.slash_command(name="gildentab", description="Gibt Link zur (deprecated) Gildenexcel zurück.")
+    @nextcord.slash_command(name="gildentab", description="Returns link to guild spreadsheet")
     async def gildentab(self, interaction: Interaction):
-        """
-        Gibt Gildenexcel - URL zurück.
-        """
-        user_obj = settings.dictionary["last_message_author"]
-        url = self.cfg["spreadsheet_path"]
-        msg = f"Gildentabelle: {url}"
-        await self.send_pm(interaction.user, msg)
-        await interaction.response.send_message("Done.")
+        """Return guild spreadsheet URL."""
+        url = self.cfg.get("spreadsheet_path", "Not configured")
+        await interaction.response.send_message(f"Guild spreadsheet: {url}")
 
-    @nextcord.slash_command(name="wowaudit", description="Gibt Link zu wowaudit zurück.")
+    @nextcord.slash_command(name="wowaudit", description="Returns link to WoW Audit")
     async def wowaudit(self, interaction: Interaction):
-        """
-        Gibt WoWAudit - URL zurück.
-        """
-        url = self.cfg["wowaudit_path"]
-        msg = f"Raidanmeldungen: {url}"
-        await self.send_pm(interaction.user, msg)
-        await interaction.response.send_message("Done.")
+        """Return WoW Audit URL."""
+        url = self.cfg.get("wowaudit_path", "Not configured")
+        await interaction.response.send_message(f"Raid signups: {url}")
 
-    @nextcord.slash_command(name="progress", description="Gibt Link zur Progress-Seite zurück.")
+    @nextcord.slash_command(name="progress", description="Returns link to progress page")
     async def progress(self, interaction: Interaction):
-        """
-        Gibt Progress - Pfad zurück.
-        """
-        url = self.cfg["progstats_path"]
-        msg = f"Progressseite: {url}"
-        await self.send_pm(interaction.user, msg)
-        await interaction.response.send_message("Done.")
+        """Return progress tracking URL."""
+        url = self.cfg.get("progstats_path", "Not configured")
+        await interaction.response.send_message(f"Progress page: {url}")
 
-    @nextcord.slash_command(name="help", description="Gibt Hilfe zurück.")
+    @nextcord.slash_command(name="help", description="Show available commands")
     async def help(self, interaction: Interaction):
-        """
-        Gibt Hilfekontext zurück.
-        """
-        helplist = list()
-        helplist.append(HelpHandler().get_player_cmd_help())
-        helplist.append(HelpHandler().get_character_cmd_help())
-        helplist.append(HelpHandler().get_trial_cmd_help())
-        helplist.append(HelpHandler().get_message_cmd_help())
-        helplist.append(HelpHandler().get_fun_cmd_help())
-        helplist.append(HelpHandler().get_reminder_cmd_help())
+        """Show help for all command categories."""
+        help_handler = HelpHandler()
+        help_embeds = [
+            help_handler.get_player_cmd_help(),
+            help_handler.get_character_cmd_help(),
+            help_handler.get_trial_cmd_help(),
+            help_handler.get_message_cmd_help(),
+            help_handler.get_fun_cmd_help(),
+            help_handler.get_reminder_cmd_help()
+        ]
 
-        for embView in helplist:
-            await interaction.send(embed=embView)
+        await interaction.response.defer()
+        for embed in help_embeds:
+            if embed:
+                await interaction.followup.send(embed=embed)
 
-    @nextcord.slash_command(name="w", description="Gibt Nachricht an.")
-    async def w(self, interaction: Interaction, member: nextcord.Member, msg):
+    @nextcord.slash_command(name="w", description="Send a whisper message to a player")
+    async def w(self, interaction: Interaction, member: nextcord.Member, message: str):
+        """Send a private message to another player."""
         sender_name = interaction.user.name
 
-        # Filtere Nachrichten nach bestimmten Kriterien
-        filter = MessageFilter(msg, sender_name)
-        result = filter.check_all()
-        if result != "":
-            await interaction.response.send_message(f"Message wurde gefiltert fetter Hurensohn. {result}",
-                                                    ephemeral=True)
+        # Filter messages
+        msg_filter = MessageFilter(message, sender_name)
+        filter_result = msg_filter.check_all()
+        if filter_result:
+            await interaction.response.send_message(
+                f"Message was filtered: {filter_result}", ephemeral=True
+            )
             return
-        id = MemberModel.get_discord_id(member)
-        if GeneralCommands.get_muted_status(id) == 1:
-            await interaction.response.send_message(f"Receiver hat den Bot gemuted.", ephemeral=True)
+
+        # Check if receiver has muted the bot
+        discord_id = MemberModel.get_discord_id(member)
+        if GeneralCommands.get_muted_status(discord_id):
+            await interaction.response.send_message(
+                "Receiver has muted bot messages.", ephemeral=True
+            )
             return
 
         receiver_name = MemberModel.get_member_name(member)
+        now = datetime.now()
+        date_str = DateConverter.formate_date_for_db(DateConverter.get_current_date())
+        time_str = DateConverter.format_date_for_db(now)
 
-        d = datetime.now()
-        today = DateConverter.get_current_date()
-        time = DateConverter.format_date_for_db(d)
-        date = DateConverter.formate_date_for_db(today)
+        # Store message in database
+        with get_db() as db:
+            db.write_data_query(
+                "INSERT INTO messages (DATE, TIME, SENDER, MSG, RECEIVER) VALUES (%s, %s, %s, %s, %s)",
+                (date_str, time_str, sender_name, message, receiver_name)
+            )
+            result = db.fetch_data_query(
+                "SELECT MSG_ID FROM messages WHERE DATE = %s AND TIME = %s AND SENDER = %s",
+                (date_str, time_str, sender_name)
+            )
+            msg_id = result[0][0] if result else 0
 
-        sql = f"INSERT INTO messages " \
-              f"(DATE, TIME, SENDER, MSG, RECEIVER)" \
-              f"VALUES(%s, %s, %s, %s, %s);"
-        val = (date, time, sender_name, msg, receiver_name)
+        await OutputHandler.send_pm(member, f"[MessageID:{msg_id}]: {message}")
+        await interaction.response.send_message("Message sent.", ephemeral=True)
 
-        db = DatabaseConnector()
-        db.connect()
-        db.write_data_query(sql, val)
-        db.close()
-        msg_id = self.get_msg_id(date, time, sender_name)
-
-        await OutputHandler.send_pm(member, f"[MessageID:{msg_id}]: " + msg)
-        await interaction.response.send_message("Message send.", ephemeral=True)
-
-    async def r(self, interaction: Interaction, msg_id, msg):
+    @nextcord.slash_command(name="r", description="Reply to a message by ID")
+    async def reply(self, interaction: Interaction, msg_id: int, message: str):
+        """Reply to a message using its ID."""
         sender_name = interaction.user.name
-        filter = MessageFilter(msg, sender_name)
-        result = filter.check_all()
-        receiver_name = self.get_sender_from_msg_id(msg_id)
 
-        if result != "":
-            await interaction.response.send_message(f"Message wurde gefiltert fetter Hurensohn. {result}", ephemeral=True)
+        # Filter messages
+        msg_filter = MessageFilter(message, sender_name)
+        filter_result = msg_filter.check_all()
+        if filter_result:
+            await interaction.response.send_message(
+                f"Message was filtered: {filter_result}", ephemeral=True
+            )
             return
 
-        d = datetime.now()
-        today = DateConverter.get_current_date()
-        time = DateConverter.format_date_for_db(d)
-        date = DateConverter.formate_date_for_db(today)
+        # Get original sender
+        with get_db() as db:
+            result = db.fetch_data_query(
+                "SELECT SENDER FROM messages WHERE MSG_ID = %s",
+                (msg_id,)
+            )
 
-        sql = f"INSERT INTO messages " \
-              f"(DATE, TIME, SENDER, MSG, RECEIVER)" \
-              f"VALUES(%s, %s, %s, %s, %s);"
-        val = (date, time, sender_name, msg, receiver_name)
+        if not result:
+            await interaction.response.send_message(
+                "Message not found!", ephemeral=True
+            )
+            return
 
-        db = DatabaseConnector()
-        db.connect()
-        db.write_data_query(sql, val)
-        db.close()
-        msg_id = self.get_msg_id(date, time, sender_name)
+        receiver_name = result[0][0]
 
-        sender_id = self.get_sender_from_msg_id(msg_id)
-        member = MemberModel.get_member_obj(self.bot, sender_id)
+        # Find the member
+        member = None
+        for guild in self.bot.guilds:
+            member = get(guild.members, name=receiver_name)
+            if member:
+                break
 
-        await OutputHandler.send_pm(member, f"[MessageID:{msg_id}]: " + msg)
-        await interaction.response.send_message("Message send.", ephemeral=True)
+        if not member:
+            await interaction.response.send_message(
+                f"Could not find user {receiver_name}.", ephemeral=True
+            )
+            return
 
-    def get_msg_id(self, date, time, sender_name):
-        query = f"SELECT MSG_ID FROM messages WHERE DATE='{date}' AND TIME='{time}' AND SENDER='{sender_name}'"
-        db = DatabaseConnector()
-        db.connect()
-        result = db.fetch_data_query(query)
-        db.close()
-        return result[0][0]
+        # Store reply
+        now = datetime.now()
+        date_str = DateConverter.formate_date_for_db(DateConverter.get_current_date())
+        time_str = DateConverter.format_date_for_db(now)
 
-    def get_sender_from_msg_id(self, msg_id):
-        query = f"SELECT SENDER FROM messages WHERE MSG_ID='{msg_id}'"
-        db = DatabaseConnector()
-        db.connect()
-        result = db.fetch_data_query(query)
-        db.close()
-        return result[0][0]
+        with get_db() as db:
+            db.write_data_query(
+                "INSERT INTO messages (DATE, TIME, SENDER, MSG, RECEIVER) VALUES (%s, %s, %s, %s, %s)",
+                (date_str, time_str, sender_name, message, receiver_name)
+            )
+            result = db.fetch_data_query(
+                "SELECT MSG_ID FROM messages WHERE DATE = %s AND TIME = %s AND SENDER = %s",
+                (date_str, time_str, sender_name)
+            )
+            new_msg_id = result[0][0] if result else 0
+
+        await OutputHandler.send_pm(member, f"[Reply to {msg_id}][MessageID:{new_msg_id}]: {message}")
+        await interaction.response.send_message("Reply sent.", ephemeral=True)
 

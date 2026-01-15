@@ -37,10 +37,11 @@ class GeneralCommands(commands.Cog):
         await interaction.response.send_message("Done.")
 
     @staticmethod
-    def get_muted_status(id):
+    def get_muted_status(discord_id: int) -> bool:
+        """Check if a player has muted the bot."""
         db = DatabaseConnector()
         db.connect()
-        query = f"SELECT IS_MUTED FROM player WHERE DISCORD_ID={id};"
-        value = db.fetch_data_query(query)
+        query = "SELECT IS_MUTED FROM player WHERE DISCORD_ID = %s"
+        value = db.fetch_data_query(query, (discord_id,))
         db.close()
         return BoolBitConverter.bit_to_bool(value[0][0])

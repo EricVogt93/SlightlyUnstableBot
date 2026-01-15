@@ -18,15 +18,15 @@ class TrialCommands(commands.Cog):
         """
         self.bot = bot
 
-    @nextcord.slash_command(name="show_trials", description="Zeigt")
+    @nextcord.slash_command(name="show_trials", description="Shows all trial members")
     async def show_trials(self, interaction: Interaction):
         await asyncio.sleep(1)
         bit = BoolBitConverter.bool_to_bit(True)
-        query = f"SELECT * FROM player WHERE IS_TRIAL = {bit}"
+        query = "SELECT * FROM player WHERE IS_TRIAL = %s"
 
         db = DatabaseConnector()
         db.connect()
-        raw_data = db.fetch_data_query(query)
+        raw_data = db.fetch_data_query(query, (bit,))
         db.close()
         data = MemberModel.parse_data(self.bot, raw_data)
 

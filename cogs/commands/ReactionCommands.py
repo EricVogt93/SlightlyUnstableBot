@@ -1,18 +1,11 @@
-import os
-import os
-
 import nextcord
-from nextcord.ext import commands, tasks
+from nextcord.ext import commands
 from nextcord import Interaction
-
-from logic.classes.ConfigHandler import ConfigHandler
-from logic.classes.DatabaseConnector import DatabaseConnector
-from logic.classes.OutputHandler import OutputHandler
-from logic.helper.DateConverter import DateConverter
-from logic.models.MemberModel import MemberModel
 
 
 class ReactionCommands(commands.Cog):
+    """Handles raid signup messages with reactions."""
+
     def __init__(self, bot):
         self.bot = bot
 

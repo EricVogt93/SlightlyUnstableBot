@@ -1,26 +1,40 @@
-class switchcase:
-    case_dictionary = None
-    switch = None
+"""Simple switch-case implementation for error handling."""
+from typing import Any, Dict, Optional
 
-    def __init__(self, case_dictionary, switch):
-        """
-        Konstruktor der Klasse switchcase
-        :rtype: object
-        """
+
+class SwitchCase:
+    """
+    Switch-case pattern implementation.
+
+    Usage:
+        switch = SwitchCase({"error.Type": "handler"}, "error.Type")
+        result = switch.match()  # Returns "handler"
+    """
+
+    def __init__(self, case_dictionary: Dict[str, Any], value: str) -> None:
         self.case_dictionary = case_dictionary
-        self.switch = switch
+        self.value = value
 
-    def compare(self):
-        for case, method in self.case_dictionary:
-            if case == self.switch:
-                return method
-        return "No matching case existing!"
+    def match(self, partial: bool = True) -> Optional[str]:
+        """
+        Find matching case for the value.
 
-    def compare(self, contains: bool):
-        if not contains:
-            return
+        Args:
+            partial: If True, checks if case is contained in value.
+                    If False, checks for exact match.
 
-        for case in self.case_dictionary:
-            if case in self.switch:
-                return self.case_dictionary[case]
+        Returns:
+            The matched handler/value or "UnknownError" if no match.
+        """
+        for case, handler in self.case_dictionary.items():
+            if partial:
+                if case in self.value:
+                    return handler
+            else:
+                if case == self.value:
+                    return handler
         return "UnknownError"
+
+
+# Backwards compatibility alias
+switchcase = SwitchCase

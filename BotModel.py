@@ -1,67 +1,56 @@
+import logging
 import os
+from typing import Optional
 
 import nextcord
 from nextcord.ext import commands
 
 from cogs.CommandRegisterService import CommandRegisterService
-from logic.classes.ConfigHandler import ConfigHandler
+from logic.helper.singleton import Singleton
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+logger = logging.getLogger(__name__)
 
 
 class BotModel(metaclass=Singleton):
-    def __init__(self):
-        """
-        Konstruktor der Klasse Bot
-        """
-        self.prefix = "/"
-        self.intents = nextcord.Intents.all()
-        self.bot = None
-        self.isDebugMode = True
+    """Main Discord bot model handling initialization and lifecycle."""
 
-        # Check ob Bot aus Pycharm gestarted wurde.
-        if "PYCHARM_HOSTED" in os.environ:
-            self.isDebugMode = True
-        else:
-            self.isDebugMode = False
+    def __init__(self) -> None:
+        self.prefix: str = "/"
+        self.intents: nextcord.Intents = nextcord.Intents.all()
+        self.bot: Optional[commands.Bot] = None
+        self.is_debug_mode: bool = "PYCHARM_HOSTED" in os.environ
 
-    def start_bot(self):
-        """
-        Funktion startet Discord Bot.
-        """
-        cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "DEFAULT")
-        token = cfg.get_value("token")
+    def start_bot(self) -> None:
+        """Initialize and start the Discord bot."""
+        token = os.getenv("DISCORD_TOKEN")
+        if not token:
+            raise ValueError("DISCORD_TOKEN environment variable is not set")
 
-        self.bot = commands.Bot(command_prefix=self.prefix, case_insensitive=True, intents=self.intents,
-                                help_command=None)
+        self.bot = commands.Bot(
+            command_prefix=self.prefix,
+            case_insensitive=True,
+            intents=self.intents,
+            help_command=None
+        )
         self.register_cogs()
         self.bot.run(token)
 
-    def get_bot_obj(self):
-        """
-        Gibt Instanz vom Discord Bot zurück
-        :return: Object
-        """
+    def get_bot_obj(self) -> Optional[commands.Bot]:
+        """Return the Discord bot instance."""
         return self.bot
 
-    def get_debug_mode(self):
-        """
-        Gibt DebugMode Boolean zurück.
-        :return: Boolean
-        """
-        return self.isDebugMode
+    def get_debug_mode(self) -> bool:
+        """Return whether the bot is running in debug mode."""
+        return self.is_debug_mode
 
-    def register_cogs(self):
-        """
-        Startpunkt für CommandRegisterService.
-        """
+    def register_cogs(self) -> None:
+        """Register all command cogs with the bot."""
         crs = CommandRegisterService(self.bot)
         crs.register_events()
         crs.register_commands()

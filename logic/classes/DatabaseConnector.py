@@ -1,70 +1,112 @@
+import logging
 import os
+from contextlib import contextmanager
+from typing import Any, Generator, List, Optional, Tuple
 
 import mysql.connector
 
-from logic.classes.ConfigHandler import ConfigHandler
+from logic.helper.singleton import Singleton
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-class Singleton(type):
-    _instances = {}
-
-    def __call__(self, *args, **kwargs):
-        if self not in self._instances:
-            self._instances[self] = super(Singleton, self).__call__(*args, **kwargs)
-        return self._instances[self]
+logger = logging.getLogger(__name__)
 
 
 class DatabaseConnector(metaclass=Singleton):
+    """
+    Handles MySQL database connections and queries.
 
-    def __init__(self):
-        self.con_obj = None
-        self.isConnected = False
+    Can be used as a context manager for automatic connection handling:
+        with get_db() as db:
+            result = db.fetch_data_query("SELECT * FROM table")
+    """
 
-        cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "DEFAULT")
-        self.driver = cfg.get_value("driver")
-        self.server = cfg.get_value("server")
-        self.database = cfg.get_value("database")
-        self.user = cfg.get_value("user")
-        self.pw = cfg.get_value("pw")
+    def __init__(self) -> None:
+        self.con_obj: Optional[mysql.connector.MySQLConnection] = None
+        self.is_connected: bool = False
 
-    def connect(self):
+        # Load database config from environment variables
+        self.host: str = os.getenv("DB_HOST", "localhost")
+        self.port: int = int(os.getenv("DB_PORT", "3306"))
+        self.database: str = os.getenv("DB_NAME", "subot")
+        self.user: str = os.getenv("DB_USER", "root")
+        self.password: str = os.getenv("DB_PASSWORD", "")
+
+    def connect(self) -> None:
+        """Establish connection to the MySQL database."""
         try:
-            self.con_obj = mysql.connector.connect(user="root", password="08E04v1993", host="2.203.255.81",
-                                                   port=3306, database="subot")
-            self.isConnected = True
-        except:
-            # ToDo: Auslagern ExceptionManager.py
-            self.isConnected = False
-            raise Exception("DatabaseConnector:connect - Database connection failed")
+            self.con_obj = mysql.connector.connect(
+                user=self.user,
+                password=self.password,
+                host=self.host,
+                port=self.port,
+                database=self.database
+            )
+            self.is_connected = True
+        except mysql.connector.Error as e:
+            self.is_connected = False
+            raise ConnectionError(f"Database connection failed: {e}")
 
-    def close(self):
+    def close(self) -> None:
+        """Close the database connection."""
         try:
-            self.con_obj.close()
-            self.isConnected = False
-        except:
-            self.isConnected = True
-            raise Exception("DatabaseConnector:connect - Database connection could not be closed.")
+            if self.con_obj:
+                self.con_obj.close()
+            self.is_connected = False
+        except mysql.connector.Error as e:
+            raise ConnectionError(f"Failed to close database connection: {e}")
 
-    def write_data_query(self, sql, val):
-        if self.isConnected:
-            cursor = self.con_obj.cursor()
-            try:
-                cursor.execute(sql, val)
-            except:
-                raise Exception("DatabaseConnector:write_data_query - Something happenend.")
+    def write_data_query(self, sql: str, params: Optional[Tuple] = None) -> None:
+        """Execute an INSERT/UPDATE/DELETE query with parameters."""
+        if not self.is_connected:
+            raise ConnectionError("Not connected to database")
+
+        cursor = self.con_obj.cursor()
+        try:
+            cursor.execute(sql, params)
             self.con_obj.commit()
+        except mysql.connector.Error as e:
+            self.con_obj.rollback()
+            raise RuntimeError(f"Query execution failed: {e}")
+        finally:
             cursor.close()
 
-    def fetch_data_query(self, sql):
-        data = []
+    def fetch_data_query(self, sql: str, params: Optional[Tuple] = None) -> List[Tuple]:
+        """Execute a SELECT query with optional parameters and return results."""
+        if not self.is_connected:
+            raise ConnectionError("Not connected to database")
 
-        if self.isConnected:
-            cursor = self.con_obj.cursor()
-            try:
-                cursor.execute(sql)
-                data = cursor.fetchall()
-            except:
-                raise Exception(
-                    f"DatabaseConnector:fetch_data_query - Something happenend.\n Query: {sql}\n")
+        cursor = self.con_obj.cursor()
+        try:
+            cursor.execute(sql, params)
+            return cursor.fetchall()
+        except mysql.connector.Error as e:
+            raise RuntimeError(f"Query execution failed: {e}\nQuery: {sql}")
+        finally:
             cursor.close()
-            return data
+
+
+@contextmanager
+def get_db() -> Generator[DatabaseConnector, None, None]:
+    """
+    Context manager for database operations.
+
+    Automatically connects and closes the database connection.
+
+    Usage:
+        with get_db() as db:
+            result = db.fetch_data_query("SELECT * FROM table")
+
+    Yields:
+        DatabaseConnector: Connected database instance
+    """
+    db = DatabaseConnector()
+    db.connect()
+    try:
+        yield db
+    finally:
+        db.close()

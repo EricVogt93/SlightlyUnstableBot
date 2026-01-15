@@ -1,4 +1,5 @@
 import asyncio
+from datetime import date
 
 import nextcord
 from nextcord import Interaction
@@ -9,35 +10,35 @@ from logic.classes.OutputHandler import OutputHandler
 from logic.helper.BoolBitConverter import BoolBitConverter
 from logic.helper.DateConverter import DateConverter
 from logic.models.MemberModel import MemberModel
+from logic.services.FlaskService import flask_service
 
 
 class PlayerCommands(commands.Cog):
+    """Handles player management commands."""
+
     def __init__(self, bot):
-        """
-        Konstruktor der Klasse PlayerCommands
-        :param bot:
-        """
         self.bot = bot
 
-    @nextcord.slash_command(name="add_gamer", description="Fügt Spieler zur DB hinzu.")
+    @nextcord.slash_command(name="add_gamer", description="Add a player to the database")
     @commands.has_role("Officer")
-    async def add_gamer(self, interaction: Interaction, member: nextcord.Member, joined_mid_year=True):
+    async def add_gamer(self, interaction: Interaction, member: nextcord.Member):
         name = str(member.name)
-        id = MemberModel.get_discord_id(member)
-        is_trial_bool = MemberModel.is_trial(member)
-        is_trial = BoolBitConverter.bool_to_bit(is_trial_bool)
-        id_joined = self.get_joined_id(joined_mid_year)
+        discord_id = MemberModel.get_discord_id(member)
+        is_trial = BoolBitConverter.bool_to_bit(MemberModel.is_trial(member))
+        # New players start with today as their paid_until date (no debt yet)
+        initial_paid_until = flask_service.get_initial_paid_until()
 
-        sql = f"INSERT INTO player " \
-              f"(PLAYER_NAME, DISCORD_ID, IS_TRIAL, ID_JOINED)" \
-              f"VALUES (%s, %s, %s, %s);"
-        val = (name, id, is_trial, id_joined)
+        sql = """INSERT INTO player
+                 (PLAYER_NAME, DISCORD_ID, IS_TRIAL, FLASK_PAID_UNTIL)
+                 VALUES (%s, %s, %s, %s)"""
+        val = (name, discord_id, is_trial, initial_paid_until)
 
         db = DatabaseConnector()
         db.connect()
         db.write_data_query(sql, val)
         db.close()
-        msg = f"Spieler in Datenbank geadded {member.name}!"
+
+        msg = f"Player {member.name} added to database! Flask payments start from {initial_paid_until}."
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
@@ -89,7 +90,7 @@ class PlayerCommands(commands.Cog):
 
         date = DateConverter.formate_date_for_db(vacation_end)
 
-        sql = "UPDATE player SET VACATION_END=date%s WHERE DISCORD_ID=%s"
+        sql = "UPDATE player SET VACATION_END=%s WHERE DISCORD_ID=%s"
         val = (date, id)
 
         db = DatabaseConnector()
@@ -101,17 +102,17 @@ class PlayerCommands(commands.Cog):
         await interaction.response.send_message("Done.")
 
     @nextcord.slash_command(name="get_players_in_vacation",
-                            description="Gibt alle Spieler zurück die gerade im Urlaub sind")
+                            description="Returns all players currently on vacation")
     @commands.has_role("Officer")
     async def get_players_in_vacation(self, interaction: Interaction):
         await asyncio.sleep(1)
         today = DateConverter.get_current_date()
         db_today = DateConverter.formate_date_for_db(today)
-        sql = f"SELECT * FROM player WHERE VACATION_END>{db_today} OR VACATION_END IS NULL AND VACATION_END<{db_today};"
+        sql = "SELECT * FROM player WHERE VACATION_END > %s OR (VACATION_END IS NULL AND VACATION_START < %s)"
 
         db = DatabaseConnector()
         db.connect()
-        raw_data = db.fetch_data_query(sql)
+        raw_data = db.fetch_data_query(sql, (db_today, db_today))
         db.close()
 
         data = MemberModel.parse_data(self.bot, raw_data)
@@ -121,104 +122,116 @@ class PlayerCommands(commands.Cog):
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
-    @nextcord.slash_command(name="add_flask", description="Zahlt Flask für Spieler ein.")
+    @nextcord.slash_command(name="add_flask", description="Record flask payment for a player")
     @commands.has_role("Officer")
-    async def add_flask(self, interaction: Interaction, member: nextcord.Member, flask):
-        id = MemberModel.get_discord_id(member)
-        sql = f"UPDATE player SET FLASK_SPEND=%s WHERE DISCORD_ID=%s"
-        val = None
-        paid_flask_tpl = self.get_paid_flask(interaction, member)
-        paid_flask = paid_flask_tpl[0][0]
+    async def add_flask(self, interaction: Interaction, member: nextcord.Member, amount: int):
+        """
+        Add flask payment for a player. Updates their paid_until date.
 
-        if paid_flask is not None:
-            val = (int(flask) + int(paid_flask), id)
-        else:
-            val = (flask, id)
+        Args:
+            member: The player who paid
+            amount: Number of flasks paid
+        """
+        if amount <= 0:
+            await interaction.response.send_message("Amount must be positive!", ephemeral=True)
+            return
 
+        discord_id = MemberModel.get_discord_id(member)
+
+        # Get current paid_until date
         db = DatabaseConnector()
         db.connect()
-        db.write_data_query(sql, val)
+        result = db.fetch_data_query(
+            "SELECT FLASK_PAID_UNTIL FROM player WHERE DISCORD_ID = %s",
+            (discord_id,)
+        )
+
+        if not result:
+            db.close()
+            await interaction.response.send_message(f"Player {member.name} not found!", ephemeral=True)
+            return
+
+        current_paid_until = result[0][0]  # Could be None or a date
+
+        # Calculate new paid_until date
+        new_paid_until = flask_service.calculate_new_paid_until(current_paid_until, amount)
+
+        # Update database
+        db.write_data_query(
+            "UPDATE player SET FLASK_PAID_UNTIL = %s WHERE DISCORD_ID = %s",
+            (new_paid_until, discord_id)
+        )
         db.close()
-        msg = f"{flask} added für {id}!"
+
+        # Get updated status
+        status = flask_service.calculate_status(new_paid_until, member.name)
+
+        msg = f"Added {amount} flasks for {member.name}!\n{flask_service.format_status_message(status)}"
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
-    @nextcord.slash_command(name="fetch_all", description="Gibt alle Spieler und ihren Flask-Stand zurück.")
+    @nextcord.slash_command(name="fetch_all", description="Show flask status for all players")
     @commands.has_role("Officer")
     async def fetch_all(self, interaction: Interaction):
-        query = f"SELECT * FROM player;"
-
+        """Show flask payment status for all players."""
         db = DatabaseConnector()
         db.connect()
-        raw_data = db.fetch_data_query(query)
+        raw_data = db.fetch_data_query(
+            "SELECT PLAYER_NAME, FLASK_PAID_UNTIL FROM player ORDER BY FLASK_PAID_UNTIL ASC"
+        )
         db.close()
 
-        data = MemberModel.parse_data(self.bot, raw_data)
-        week_num = DateConverter.get_week_number()
+        if not raw_data:
+            await interaction.response.send_message("No players found!", ephemeral=True)
+            return
 
-        msg = self.build_flask_msg(interaction.user, data, week_num)
+        msg = "**Flask Status Overview**\n\n"
+        for row in raw_data:
+            name, paid_until = row[0], row[1]
+            status = flask_service.calculate_status(paid_until, name)
+            msg += flask_service.format_status_message(status) + "\n"
+
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
-    @nextcord.slash_command(name="flask", description="Gibt Flaskstand für einen Spieler zurück.")
+    @nextcord.slash_command(name="flask", description="Check flask status for a player")
     async def flask(self, interaction: Interaction, member: nextcord.Member):
-        id = MemberModel.get_discord_id(member)
-        query = f"SELECT * FROM player WHERE DISCORD_ID={id};"
+        """Check flask payment status for a specific player."""
+        discord_id = MemberModel.get_discord_id(member)
 
         db = DatabaseConnector()
         db.connect()
-        raw_data = db.fetch_data_query(query)
+        result = db.fetch_data_query(
+            "SELECT FLASK_PAID_UNTIL FROM player WHERE DISCORD_ID = %s",
+            (discord_id,)
+        )
         db.close()
 
-        data = MemberModel.parse_data(self.bot, raw_data)
-        week_num = DateConverter.get_week_number()
+        if not result:
+            await interaction.response.send_message(f"Player {member.name} not found!", ephemeral=True)
+            return
 
-        msg = self.build_flask_msg(member, data, week_num)
+        paid_until = result[0][0]
+        status = flask_service.calculate_status(paid_until, member.name)
+
+        msg = f"**Flask Status for {member.name}**\n\n"
+        msg += flask_service.format_status_message(status)
+        msg += f"\n\nTax rate: {flask_service.tax_per_week} flasks/week"
+
         await OutputHandler.send_pm(interaction.user, msg)
         await interaction.response.send_message("Done.")
 
-    def get_paid_flask(self, ctx, member: nextcord.Member):
-        id = MemberModel.get_discord_id(member)
-        sql = f"SELECT FLASK_SPEND FROM player WHERE DISCORD_ID={id}"
-
-        db = DatabaseConnector()
-        db.connect()
-        raw_data = db.fetch_data_query(sql)
-        db.close()
-        return raw_data
-
-    def get_joined_id(self, joined_mid_year=True):
-        week_number = DateConverter.get_week_number()
-
-        if joined_mid_year:
-            return week_number
-        return 0
-
-    def flask_calculation(self, flask_spend, week_num, id_joined):
-        return ((flask_spend / 8) - week_num) + int(id_joined)
-
-    def build_flask_msg(self, member: nextcord.Member, data, week_num):
-        msg = ""
-        try:
-            for member in data:
-                covered_weeks = self.flask_calculation(member.flask_spend, week_num, member.joined_id)
-                msg += f"- {member.name} ist für {str(covered_weeks)} Wochen save.\n"
-        except:
-            msg = "PlayerCommands:build_flask_msg -  Leider kam es zu Problemen bei der Verarbeitung."
-            raise Exception(f"PlayerCommands:build_flask_msg - Something happenend.")
-        return msg
-
-    def build_vacation_msg(self, data):
+    def build_vacation_msg(self, data) -> str:
+        """Build a message showing vacation status for members."""
         msg = ""
         try:
             for member in data:
                 if member.vacation_end != "None":
                     vacation_end = member.vacation_end.replace("'", "")
                     d = DateConverter.formate_date_for_bot(vacation_end)
-                    msg += f"- {member.name} kommt am {d} zurück.\n"
+                    msg += f"- {member.name} returns on {d}.\n"
                 else:
-                    msg += f"- {member.name} kommt irgendwann zurück.\n"
-        except:
-            msg = "PlayerCommands:build_vacation_msg -  Leider kam es zu Problemen bei der Verarbeitung."
-            raise Exception(f"PlayerCommands:build_vacation_msg - Something happenend.")
+                    msg += f"- {member.name} returns at some point.\n"
+        except (AttributeError, TypeError) as e:
+            raise RuntimeError(f"Failed to build vacation message: {e}")
         return msg

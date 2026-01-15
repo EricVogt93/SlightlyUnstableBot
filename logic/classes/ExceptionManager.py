@@ -1,38 +1,43 @@
+"""Error handling for Discord command exceptions."""
 import os
+from typing import Dict, Optional
 
 from logic.classes.ConfigHandler import ConfigHandler
-from logic.helper.switchcase import switchcase
+from logic.helper.switchcase import SwitchCase
+
+
+# Error type to handler mapping
+ERROR_HANDLERS: Dict[str, str] = {
+    "errors.CommandOnCooldown": "CommandOnCooldown",
+    "errors.MissingPermissions": "MissingPermissions",
+    "errors.MissingRequiredArgument": "MissingRequiredArgument",
+    "errors.ConversionError": "ConversionError",
+    "errors.CommandNotFound": "CommandNotFound"
+}
 
 
 class ErrorHandler:
-    error = None
-    obj = None
-    error_dictionary = None
-    errors_config_settings = None
+    """Handles Discord command errors and returns appropriate messages."""
 
-    def __init__(self, error):
-        self.error = str(type(error))
-        self.errortxt = error.args[0]
-        self.buildDict()
+    def __init__(self, error: Exception) -> None:
+        self.error_type = str(type(error))
+        self.error_text = error.args[0] if error.args else str(error)
 
         cfg = ConfigHandler(os.path.join("res", "bot_config.ini"), "bot_config.ini", "ERRORS")
-        self.errors_config_settings = cfg.load()
+        self.error_messages = cfg.load()
 
-    def check_error(self):
-        switch = switchcase(self.error_dictionary, self.error)
-        errorhandling = switch.compare(True)
-        # dynamischer function call
-        method = globals()[errorhandling]
-        return method(self.errors_config_settings, self.errortxt)
+    def get_error_message(self) -> str:
+        """Get formatted error message for the error type."""
+        switch = SwitchCase(ERROR_HANDLERS, self.error_type)
+        handler_name = switch.match(partial=True)
 
-    def build_dict(self):
-        self.error_dictionary = {
-            "errors.CommandOnCooldown": "CommandOnCooldown",
-            "errors.MissingPermissions": "MissingPermissions",
-            "errors.MissingRequiredArgument": "MissingRequiredArgument",
-            "errors.ConversionError": "ConversionError",
-            "errors.CommandNotFound": "CommandNotFound"
-        }
+        # Get the handler function
+        handler = globals().get(handler_name, UnknownError)
+        return handler(self.error_messages, self.error_text)
+
+    # Backwards compatibility
+    def check_error(self) -> str:
+        return self.get_error_message()
 
 
 def CommandOnCooldown(errors_config_settings, errortxt):

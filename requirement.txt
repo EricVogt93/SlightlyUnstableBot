@@ -3,3 +3,6 @@ pyodbc
 requests
 schedule
 mysql-connector-python
+python-dotenv
+pytest
+pytest-asyncio

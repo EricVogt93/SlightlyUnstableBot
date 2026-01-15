@@ -72,11 +72,12 @@ class MemberModel:
     def get_member_obj(self, bot, id):
         return get(iterable=bot.get_all_members(), id=int(id))
 
-    def get_member_id_from_name(self, name):
-        query = f"SELECT * FROM player WHERE Name='{name}'"
+    def get_member_id_from_name(self, name: str) -> int:
+        """Get player ID from database by name."""
+        query = "SELECT * FROM player WHERE PLAYER_NAME = %s"
         db = DatabaseConnector()
         db.connect()
-        result = db.fetch_data_query(query)
+        result = db.fetch_data_query(query, (name,))
         db.close()
         return result[0][0]
 
